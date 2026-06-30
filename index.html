@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cure Chart Viewer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 20px 32px 16px;
+    border-bottom: 1px solid #21262d;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  header .logo {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: white;
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #f0f6fc;
+    letter-spacing: 0.01em;
+  }
+
+  header span {
+    font-size: 12px;
+    color: #6e7681;
+    font-weight: 400;
+    margin-left: 2px;
+  }
+
+  .status-bar {
+    padding: 6px 32px;
+    background: #161b22;
+    border-bottom: 1px solid #21262d;
+    font-size: 12px;
+    color: #6e7681;
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-bar .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #6e7681;
+    flex-shrink: 0;
+  }
+
+  .status-bar.ready .dot { background: #3fb950; }
+  .status-bar.processing .dot {
+    background: #f97316;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 32px;
+    gap: 20px;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* Drop Zone */
+  .drop-zone {
+    border: 2px dashed #30363d;
+    border-radius: 10px;
+    padding: 48px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: #161b22;
+    position: relative;
+  }
+
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: #f97316;
+    background: #1a1f27;
+  }
+
+  .drop-zone input[type=file] {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+
+  .drop-zone .icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .drop-zone h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #f0f6fc;
+    margin-bottom: 6px;
+  }
+
+  .drop-zone p {
+    font-size: 13px;
+    color: #6e7681;
+  }
+
+  .drop-zone p strong {
+    color: #f97316;
+  }
+
+  /* Chart area */
+  .chart-area {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .chart-area.visible { display: flex; }
+
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .chart-meta h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #f0f6fc;
+  }
+
+  .chart-meta p {
+    font-size: 12px;
+    color: #6e7681;
+    margin-top: 3px;
+  }
+
+  .chart-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+    background: #21262d;
+    color: #c9d1d9;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .btn:hover { background: #2d333b; border-color: #6e7681; }
+
+  .btn.primary {
+    background: #f97316;
+    border-color: #f97316;
+    color: white;
+  }
+  .btn.primary:hover { background: #ea580c; border-color: #ea580c; }
+
+  .chart-wrapper {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+  }
+
+  canvas#cureChart {
+    max-height: 460px;
+  }
+
+  /* TC Toggle Panel */
+  .tc-panel {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+
+  .tc-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .tc-panel-header h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .tc-controls {
+    display: flex;
+    gap: 6px;
+  }
+
+  .tc-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tc-toggle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+    background: #21262d;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+    user-select: none;
+    font-size: 12px;
+    color: #c9d1d9;
+    font-weight: 500;
+  }
+
+  .tc-toggle:hover { background: #2d333b; }
+
+  .tc-toggle.hidden {
+    opacity: 0.38;
+    border-color: #21262d;
+  }
+
+  .tc-swatch {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 12px 18px;
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .stat-card .label {
+    font-size: 11px;
+    color: #6e7681;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .stat-card .value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #f0f6fc;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-card .sub {
+    font-size: 11px;
+    color: #6e7681;
+    margin-top: 2px;
+  }
+
+  /* Dwell Tolerance Panel */
+  .dwell-panel {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+
+  .dwell-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .dwell-panel-header h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .dwell-inputs {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .dwell-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .dwell-field label {
+    font-size: 11px;
+    color: #6e7681;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .dwell-field input {
+    width: 110px;
+    padding: 7px 10px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #f0f6fc;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .dwell-field input:focus { border-color: #f97316; }
+  .dwell-field input::placeholder { color: #484f58; }
+
+  /* Violations */
+  .violations-panel {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: none;
+  }
+
+  .violations-panel.visible { display: block; }
+
+  .violations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .violations-header h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .violations-summary {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+
+  .vsummary-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+  }
+
+  .vsummary-badge.pass { background: #0d2e1a; border-color: #3fb950; color: #3fb950; }
+  .vsummary-badge.fail { background: #2e0d0d; border-color: #ef4444; color: #ef4444; }
+  .vsummary-badge.warn { background: #2e1e0d; border-color: #f97316; color: #f97316; }
+
+  .violations-table-wrap {
+    overflow-x: auto;
+  }
+
+  table.vtable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  table.vtable th {
+    text-align: left;
+    padding: 7px 12px;
+    color: #6e7681;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #21262d;
+    white-space: nowrap;
+  }
+
+  table.vtable td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #161b22;
+    color: #c9d1d9;
+    white-space: nowrap;
+  }
+
+  table.vtable tr:hover td { background: #1c2128; }
+
+  table.vtable td.viol-low { color: #3b82f6; font-weight: 600; }
+  table.vtable td.viol-high { color: #ef4444; font-weight: 600; }
+  table.vtable td.viol-ok { color: #3fb950; }
+
+  .no-violations {
+    padding: 20px;
+    text-align: center;
+    color: #3fb950;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Dwell Analysis */
+  .dwell-analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .da-card {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+
+  .da-card.highlight { border-color: #f97316; }
+  .da-card.pass { border-color: #3fb950; }
+  .da-card.fail { border-color: #ef4444; }
+
+  .da-card .da-label {
+    font-size: 10px;
+    color: #6e7681;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .da-card .da-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f0f6fc;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .da-card.highlight .da-value { color: #f97316; }
+  .da-card.pass .da-value { color: #3fb950; }
+  .da-card.fail .da-value { color: #ef4444; }
+
+  .da-card .da-sub {
+    font-size: 11px;
+    color: #6e7681;
+    margin-top: 3px;
+  }
+
+  .da-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 14px 0 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #21262d;
+  }
+
+  .ramp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+
+  .ramp-table th {
+    text-align: left;
+    padding: 6px 12px;
+    color: #6e7681;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #21262d;
+    white-space: nowrap;
+  }
+
+  .ramp-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid #161b22;
+    color: #c9d1d9;
+    white-space: nowrap;
+  }
+
+  .ramp-table tr:hover td { background: #1c2128; }
+
+  /* ---- Print Styles ---- */
+  @media print {
+    @page { margin: 15mm 12mm; size: A4 landscape; }
+
+    body { background: #fff !important; color: #000 !important; font-size: 11px; }
+
+    header, .status-bar, .drop-zone,
+    .chart-actions, .tc-controls, .dwell-inputs .btn,
+    .po-panel, #statsRow .stat-card:last-child,
+    .violations-header button { display: none !important; }
+
+    main { padding: 0 !important; gap: 10px !important; max-width: 100% !important; }
+
+    .chart-area { display: flex !important; gap: 10px !important; }
+
+    .print-title-block {
+      display: block !important;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #000;
+    }
+
+    .print-title-block h2 { font-size: 15px; font-weight: 700; color: #000; }
+    .print-title-block p  { font-size: 11px; color: #444; margin-top: 3px; }
+
+    .stat-card, .tc-panel, .dwell-panel, .violations-panel,
+    .dwell-analysis-grid .da-card, .chart-wrapper, .po-panel {
+      background: #fff !important;
+      border-color: #ccc !important;
+    }
+
+    .stat-card .label, .da-card .da-label,
+    .da-section-title, .tc-panel-header h3,
+    .violations-header h3, .dwell-panel-header h3 {
+      color: #555 !important;
+    }
+
+    .stat-card .value, .da-card .da-value,
+    h2, h3, td, th { color: #000 !important; }
+
+    .stat-card .sub, .da-card .da-sub { color: #666 !important; }
+
+    .chart-wrapper { border: 1px solid #ccc !important; page-break-inside: avoid; }
+    canvas#cureChart { max-height: 320px !important; }
+
+    .tc-toggle {
+      background: #fff !important;
+      border-color: #ccc !important;
+      color: #000 !important;
+      font-size: 10px !important;
+      padding: 3px 8px !important;
+    }
+    .tc-toggle.hidden { display: none !important; }
+
+    table.vtable th, table.ramp-table th { color: #555 !important; border-bottom-color: #ccc !important; }
+    table.vtable td, table.ramp-table td { color: #000 !important; border-bottom-color: #eee !important; }
+    table.vtable tr:hover td, table.ramp-table tr:hover td { background: #fff !important; }
+
+    .vsummary-badge { border-color: #ccc !important; color: #000 !important; background: #fff !important; }
+    .vsummary-badge.pass { color: #1a7a35 !important; border-color: #1a7a35 !important; }
+    .vsummary-badge.fail { color: #c0392b !important; border-color: #c0392b !important; }
+
+    .viol-high { color: #c0392b !important; }
+    .viol-low  { color: #2471a3 !important; }
+
+    .da-card.highlight .da-value { color: #d35400 !important; }
+    .da-card.pass .da-value      { color: #1a7a35 !important; }
+    .da-card.fail .da-value      { color: #c0392b !important; }
+
+    .violations-panel.visible, .dwell-analysis-grid { page-break-inside: avoid; }
+    .dwell-panel { display: none !important; }
+  }
+
+  /* Production Order Info Panel */
+  .po-panel {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+
+  .po-panel-header {
+    margin-bottom: 14px;
+  }
+
+  .po-panel-header h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .po-panel-header p {
+    font-size: 11px;
+    color: #484f58;
+    margin-top: 4px;
+  }
+
+  .po-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+  }
+
+  .po-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .po-field label {
+    font-size: 11px;
+    color: #6e7681;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .po-field input {
+    width: 100%;
+    padding: 7px 10px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #f0f6fc;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .po-field input:focus { border-color: #f97316; }
+  .po-field input::placeholder { color: #484f58; }
+
+  .po-preview {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #6e7681;
+    font-style: italic;
+  }
+
+  .po-preview span {
+    color: #f0f6fc;
+    font-style: normal;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">C</div>
+  <h1>Cure Chart Viewer <span>— Oven TC Analysis</span></h1>
+</header>
+
+<div class="status-bar" id="statusBar">
+  <div class="dot"></div>
+  <span id="statusText">Drop a CSV to begin</span>
+</div>
+
+<main>
+
+  <div class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" accept=".csv">
+    <span class="icon">📂</span>
+    <h2>Drop your cure chart CSV here</h2>
+    <p>Accepts second-by-second data — automatically reduced to <strong>minute-by-minute</strong></p>
+    <p style="margin-top:6px">Expects a <strong>Time (s)</strong> column + TC temperature columns</p>
+  </div>
+
+  <div class="chart-area" id="chartArea">
+
+    <!-- Production Order Info -->
+    <div class="po-panel">
+      <div class="po-panel-header">
+        <h3>Production Order Info</h3>
+        <p>Used to name downloaded files. No character limits.</p>
+      </div>
+      <div class="po-fields">
+        <div class="po-field">
+          <label>Work Order #</label>
+          <input type="text" id="poWO" placeholder="e.g. 1234567" oninput="updatePoPreview()">
+        </div>
+        <div class="po-field">
+          <label>Part Number</label>
+          <input type="text" id="poPN" placeholder="e.g. P000123-001" oninput="updatePoPreview()">
+        </div>
+        <div class="po-field">
+          <label>Operation #</label>
+          <input type="text" id="poOp" placeholder="e.g. 0070" oninput="updatePoPreview()">
+        </div>
+        <div class="po-field">
+          <label>Activity #</label>
+          <input type="text" id="poAct" placeholder="e.g. 060" oninput="updatePoPreview()">
+        </div>
+      </div>
+      <div class="po-preview" id="poPreview">
+        File will be named: <span id="poPreviewText">—</span>
+      </div>
+    </div>
+
+    <div class="stats-row" id="statsRow"></div>
+
+    <div class="chart-header">
+      <div class="chart-meta">
+        <h2 id="chartTitle">Cure Chart</h2>
+        <p id="chartSubtitle"></p>
+      </div>
+      <div class="chart-actions">
+        <button class="btn" onclick="resetFile()">↩ Load New File</button>
+        <button class="btn" onclick="printReport()">🖨 Print Report</button>
+        <button class="btn primary" onclick="downloadCSV()">⬇ Download Minute CSV</button>
+      </div>
+    </div>
+
+    <!-- Print-only title block (hidden on screen) -->
+    <div class="print-title-block" style="display:none" id="printTitleBlock">
+      <h2 id="printTitleText"></h2>
+      <p id="printTitleSub"></p>
+    </div>
+
+    <div class="chart-wrapper">
+      <canvas id="cureChart"></canvas>
+    </div>
+
+    <div class="tc-panel">
+      <div class="tc-panel-header">
+        <h3>Thermocouple Channels</h3>
+        <div class="tc-controls">
+          <button class="btn" onclick="toggleAll(true)">Show All</button>
+          <button class="btn" onclick="toggleAll(false)">Hide All</button>
+        </div>
+      </div>
+      <div class="tc-grid" id="tcGrid"></div>
+    </div>
+
+    <!-- Dwell Tolerance Panel -->
+    <div class="dwell-panel">
+      <div class="dwell-panel-header">
+        <h3>Dwell Tolerance Check <span style="font-size:11px;color:#6e7681;font-weight:400;text-transform:none;letter-spacing:0">— Part TCs only (F-channels) · Dwell window auto-detected from lagging TC</span></h3>
+      </div>
+      <div class="dwell-inputs">
+        <div class="dwell-field">
+          <label>Min Temp (°F)</label>
+          <input type="number" id="dwellMin" placeholder="e.g. 250" step="0.1">
+        </div>
+        <div class="dwell-field">
+          <label>Max Temp (°F)</label>
+          <input type="number" id="dwellMax" placeholder="e.g. 260" step="0.1">
+        </div>
+        <button class="btn primary" onclick="runToleranceCheck()" style="margin-bottom:1px">Run Check</button>
+        <button class="btn" onclick="clearToleranceCheck()" style="margin-bottom:1px">Clear</button>
+      </div>
+    </div>
+
+    <!-- Dwell Analysis Panel -->
+    <div class="violations-panel" id="dwellAnalysisPanel">
+      <div class="violations-header">
+        <h3>Dwell &amp; Ramp Analysis</h3>
+      </div>
+      <div id="dwellAnalysisBody"></div>
+    </div>
+
+    <!-- Violations Panel -->
+    <div class="violations-panel" id="violationsPanel">
+      <div class="violations-header">
+        <h3>Out-of-Tolerance Readings</h3>
+        <button class="btn" onclick="downloadViolationsCSV()">⬇ Export Violations CSV</button>
+      </div>
+      <div class="violations-summary" id="violationsSummary"></div>
+      <div class="violations-table-wrap">
+        <div id="violationsBody"></div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+let chartInstance = null;
+let minuteData = null;
+let headers = [];
+let activeHeaders = [];
+let activeColIndices = [];
+let filename = '';
+
+const COLORS = [
+  '#f97316','#3b82f6','#22c55e','#a855f7','#ef4444',
+  '#06b6d4','#eab308','#ec4899','#14b8a6','#8b5cf6',
+  '#f43f5e','#84cc16','#0ea5e9','#fb923c','#c084fc'
+];
+
+// --- File handling ---
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) processFile(e.target.files[0]);
+});
+
+function setStatus(text, state) {
+  const bar = document.getElementById('statusBar');
+  bar.className = 'status-bar' + (state ? ' ' + state : '');
+  document.getElementById('statusText').textContent = text;
+}
+
+function processFile(file) {
+  filename = file.name.replace(/\.csv$/i, '');
+  setStatus('Reading file…', 'processing');
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    setStatus('Downsampling to minute-by-minute…', 'processing');
+    setTimeout(() => {
+      try {
+        const result = downsample(e.target.result);
+        minuteData = result.rows;
+        headers = result.headers;
+        setStatus(`Ready — ${minuteData.length} minute samples · building chart…`, 'processing');
+        buildChart();
+      } catch(err) {
+        setStatus('Error: ' + err.message, '');
+        console.error(err);
+      }
+    }, 20);
+  };
+  reader.readAsText(file);
+}
+
+function downsample(text) {
+  const lines = text.split(/\r?\n/);
+  let headerLine = null;
+  const rows = [];
+  const seenMinutes = new Set();
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    if (headerLine === null) {
+      if (trimmed.toLowerCase().startsWith('time') || trimmed.includes('Time (s)') || trimmed.includes('Time(')) {
+        headerLine = trimmed;
+        continue;
+      }
+      if (isNaN(parseFloat(trimmed.split(',')[0]))) continue;
+      if (headerLine === null) continue;
+    }
+
+    const cols = trimmed.split(',');
+    const t = parseFloat(cols[0]);
+    if (isNaN(t)) continue;
+    const minute = Math.floor(t / 60);
+    if (!seenMinutes.has(minute) && t >= minute * 60) {
+      seenMinutes.add(minute);
+      rows.push(cols);
+    }
+  }
+
+  if (!headerLine) throw new Error('Could not find a header row with Time column.');
+  const hdrs = headerLine.split(',').map(h => h.trim());
+  return { headers: hdrs, rows };
+}
+
+const OPEN_TC_THRESHOLD = 2500;
+
+function buildChart() {
+  const timeIdx = headers.findIndex(h => h.toLowerCase().includes('time'));
+  if (timeIdx < 0) throw new Error('No Time column found.');
+
+  const allTcHeaders = headers.filter((_, i) => i !== timeIdx);
+  const allTcIndices = headers.map((_, i) => i).filter(i => i !== timeIdx);
+
+  const timeLabels = minuteData.map(r => {
+    const s = parseFloat(r[timeIdx]);
+    return Math.round(s / 60);
+  });
+
+  const allChannels = allTcHeaders.map((name, ci) => {
+    const idx = allTcIndices[ci];
+    const data = minuteData.map(r => {
+      const v = parseFloat(r[idx]);
+      return isNaN(v) ? null : v;
+    });
+    const validVals = data.filter(v => v !== null);
+    const isOpen = validVals.length > 0 && validVals.every(v => v > OPEN_TC_THRESHOLD);
+    return { name, data, isOpen };
+  });
+
+  const openChannels = allChannels.filter(c => c.isOpen).map(c => c.name);
+  const activeChannels = allChannels.filter(c => !c.isOpen);
+
+  activeHeaders = headers.map((h, i) => {
+    if (i === timeIdx) return 'Time (min)';
+    return h;
+  }).filter((h, i) => {
+    if (i === timeIdx) return true;
+    const colName = headers[i];
+    return !openChannels.includes(colName);
+  });
+  activeColIndices = headers.map((_, i) => i).filter(i => {
+    if (i === timeIdx) return true;
+    return !openChannels.includes(headers[i]);
+  });
+
+  let colorIdx = 0;
+  const datasets = activeChannels.map(ch => {
+    const color = COLORS[colorIdx++ % COLORS.length];
+    return {
+      label: shortLabel(ch.name),
+      fullLabel: ch.name,
+      data: ch.data.map(v => (v !== null && v > OPEN_TC_THRESHOLD) ? null : v),
+      borderColor: color,
+      backgroundColor: color + '22',
+      borderWidth: 1.8,
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      tension: 0.3,
+      spanGaps: true,
+    };
+  });
+
+  buildStats(timeLabels, datasets, openChannels);
+
+  if (chartInstance) chartInstance.destroy();
+  const ctx = document.getElementById('cureChart').getContext('2d');
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels: timeLabels, datasets },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1c2128',
+          borderColor: '#30363d',
+          borderWidth: 1,
+          titleColor: '#8b949e',
+          bodyColor: '#c9d1d9',
+          titleFont: { size: 11 },
+          bodyFont: { size: 12 },
+          callbacks: {
+            title: items => `t = ${items[0].label} min`,
+            label: item => ` ${item.dataset.label}: ${item.raw !== null ? item.raw.toFixed(1) + ' °F' : 'N/A'}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Time (min)', color: '#6e7681', font: { size: 12 } },
+          ticks: { color: '#6e7681', font: { size: 11 }, maxTicksLimit: 20 },
+          grid: { color: '#21262d' }
+        },
+        y: {
+          title: { display: true, text: 'Temperature (°F)', color: '#6e7681', font: { size: 12 } },
+          ticks: { color: '#6e7681', font: { size: 11 } },
+          grid: { color: '#21262d' }
+        }
+      },
+      animation: { duration: 400 }
+    }
+  });
+
+  buildToggles(datasets);
+
+  document.getElementById('chartTitle').textContent = filename || 'Cure Chart';
+  const removedNote = openChannels.length > 0
+    ? ` · ${openChannels.length} open TC${openChannels.length > 1 ? 's' : ''} removed`
+    : '';
+  document.getElementById('chartSubtitle').textContent =
+    `${minuteData.length} minutes · ${activeChannels.length} active TC channels${removedNote}`;
+
+  setStatus(
+    `Ready — ${minuteData.length} min samples · ${activeChannels.length} active channels` +
+    (openChannels.length > 0 ? ` · ${openChannels.length} open TC${openChannels.length > 1 ? 's' : ''} auto-removed (>2500°F)` : ''),
+    'ready'
+  );
+
+  document.getElementById('dropZone').style.display = 'none';
+  document.getElementById('chartArea').classList.add('visible');
+  updatePoPreview();
+}
+
+function shortLabel(name) {
+  const match = name.match(/AI\s+([^(]+)/);
+  if (match) return match[1].replace(/\/[^(]+/, '').trim();
+  return name.replace(/\s*\(.*\)/, '').trim();
+}
+
+function buildStats(labels, datasets, openChannels) {
+  const duration = labels[labels.length - 1] - labels[0];
+  const allVals = datasets.flatMap(d => d.data.filter(v => v !== null));
+  const maxTemp = Math.max(...allVals);
+  const minTemp = Math.min(...allVals);
+  const spread = maxTemp - minTemp;
+
+  const openNote = openChannels.length > 0
+    ? openChannels.map(n => shortLabel(n)).join(', ')
+    : 'None';
+
+  const statsRow = document.getElementById('statsRow');
+  statsRow.innerHTML = `
+    <div class="stat-card">
+      <div class="label">Duration</div>
+      <div class="value">${duration} <span style="font-size:13px;font-weight:400">min</span></div>
+      <div class="sub">${minuteData.length} data points</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Peak Temp</div>
+      <div class="value">${maxTemp.toFixed(1)} <span style="font-size:13px;font-weight:400">°F</span></div>
+      <div class="sub">across active channels</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Max Spread</div>
+      <div class="value">${spread.toFixed(1)} <span style="font-size:13px;font-weight:400">°F</span></div>
+      <div class="sub">peak − min at any point</div>
+    </div>
+    <div class="stat-card" style="${openChannels.length > 0 ? 'border-color:#f97316;' : ''}">
+      <div class="label" style="${openChannels.length > 0 ? 'color:#f97316;' : ''}">Open TCs Removed</div>
+      <div class="value" style="font-size:${openChannels.length > 0 ? '16' : '20'}px;${openChannels.length > 0 ? 'color:#f97316;' : ''}">${openChannels.length > 0 ? openChannels.length : '0'}</div>
+      <div class="sub" title="${openNote}">${openChannels.length > 0 ? openNote : 'All channels valid'}</div>
+    </div>
+  `;
+}
+
+function buildToggles(datasets) {
+  const grid = document.getElementById('tcGrid');
+  grid.innerHTML = '';
+  datasets.forEach((ds, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'tc-toggle';
+    btn.dataset.idx = i;
+    btn.innerHTML = `<span class="tc-swatch" style="background:${ds.borderColor}"></span>${ds.label}`;
+    btn.title = ds.fullLabel;
+    btn.addEventListener('click', () => {
+      const meta = chartInstance.getDatasetMeta(i);
+      const hidden = !meta.hidden;
+      meta.hidden = hidden;
+      btn.classList.toggle('hidden', hidden);
+      chartInstance.update();
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function toggleAll(show) {
+  if (!chartInstance) return;
+  chartInstance.data.datasets.forEach((_, i) => {
+    chartInstance.getDatasetMeta(i).hidden = !show;
+  });
+  document.querySelectorAll('.tc-toggle').forEach(btn => {
+    btn.classList.toggle('hidden', !show);
+  });
+  chartInstance.update();
+}
+
+// ---- Dwell Tolerance ----
+let lastViolations = [];
+
+function runToleranceCheck() {
+  if (!chartInstance) return;
+
+  const minVal = parseFloat(document.getElementById('dwellMin').value);
+  const maxVal = parseFloat(document.getElementById('dwellMax').value);
+
+  if (isNaN(minVal) || isNaN(maxVal)) {
+    alert('Please enter both Min and Max temperature values.');
+    return;
+  }
+  if (minVal >= maxVal) {
+    alert('Min temperature must be less than Max temperature.');
+    return;
+  }
+
+  const labels = chartInstance.data.labels;
+  const datasets = chartInstance.data.datasets;
+
+  const partDatasets = datasets.filter(ds => /\/F-\d/i.test(ds.fullLabel));
+
+  if (partDatasets.length === 0) {
+    alert('No F-channel (part) TCs found in the active data. Cannot run tolerance check.');
+    return;
+  }
+
+  let lagChannelLabel = '';
+  let dwellStartIdx = 0;
+  let dwellEndIdx = labels.length - 1;
+  let latestStart = -1;
+  let earliestEnd = Infinity;
+
+  partDatasets.forEach(ds => {
+    const data = ds.data;
+    let firstAbove = -1;
+    for (let i = 0; i < data.length; i++) {
+      if (data[i] !== null && data[i] >= minVal) { firstAbove = i; break; }
+    }
+    let lastAbove = -1;
+    for (let i = data.length - 1; i >= 0; i--) {
+      if (data[i] !== null && data[i] >= minVal) { lastAbove = i; break; }
+    }
+    if (firstAbove === -1) return;
+
+    if (firstAbove > latestStart) {
+      latestStart = firstAbove;
+      lagChannelLabel = ds.label;
+      dwellStartIdx = firstAbove;
+    }
+    if (lastAbove < earliestEnd) {
+      earliestEnd = lastAbove;
+      dwellEndIdx = lastAbove;
+    }
+  });
+
+  if (latestStart === -1) {
+    alert(`No F-channel TC ever reached the minimum dwell temperature of ${minVal}°F.`);
+    return;
+  }
+
+  const dwellStartMin = labels[dwellStartIdx];
+  const dwellEndMin   = labels[dwellEndIdx];
+  const dwellDuration = dwellEndMin - dwellStartMin;
+
+  function avgAtIdx(ds_list, idx) {
+    const vals = ds_list.map(ds => ds.data[idx]).filter(v => v !== null);
+    return vals.length ? vals.reduce((a,b) => a+b, 0) / vals.length : null;
+  }
+
+  const rampUpStartIdx = (() => {
+    for (let i = 0; i < labels.length; i++) {
+      if (partDatasets.some(ds => ds.data[i] !== null)) return i;
+    }
+    return 0;
+  })();
+
+  const rampUpStartTemp = avgAtIdx(partDatasets, rampUpStartIdx);
+  const rampUpEndTemp   = avgAtIdx(partDatasets, dwellStartIdx);
+  const rampUpMinutes   = labels[dwellStartIdx] - labels[rampUpStartIdx];
+  const rampUpRate      = rampUpMinutes > 0 ? (rampUpEndTemp - rampUpStartTemp) / rampUpMinutes : null;
+
+  const rampDownEndIdx = (() => {
+    for (let i = labels.length - 1; i >= 0; i--) {
+      if (partDatasets.some(ds => ds.data[i] !== null)) return i;
+    }
+    return labels.length - 1;
+  })();
+
+  const rampDownStartTemp = avgAtIdx(partDatasets, dwellEndIdx);
+  const rampDownEndTemp   = avgAtIdx(partDatasets, rampDownEndIdx);
+  const rampDownMinutes   = labels[rampDownEndIdx] - labels[dwellEndIdx];
+  const rampDownRate      = rampDownMinutes > 0 ? (rampDownEndTemp - rampDownStartTemp) / rampDownMinutes : null;
+
+  const perChannelRamps = partDatasets.map(ds => {
+    const upStart = ds.data[rampUpStartIdx];
+    const upEnd   = ds.data[dwellStartIdx];
+    const dnStart = ds.data[dwellEndIdx];
+    const dnEnd   = ds.data[rampDownEndIdx];
+    return {
+      label: ds.label,
+      rampUp:   (upStart !== null && upEnd !== null && rampUpMinutes > 0)
+                  ? (upEnd - upStart) / rampUpMinutes : null,
+      rampDown: (dnStart !== null && dnEnd !== null && rampDownMinutes > 0)
+                  ? (dnEnd - dnStart) / rampDownMinutes : null,
+    };
+  });
+
+  const violations = [];
+  partDatasets.forEach(ds => {
+    ds.data.forEach((val, i) => {
+      if (val === null) return;
+      const t = labels[i];
+      if (t < dwellStartMin || t > dwellEndMin) return;
+      if (val < minVal || val > maxVal) {
+        violations.push({
+          time: t,
+          channel: ds.label,
+          value: val,
+          type: val < minVal ? 'LOW' : 'HIGH',
+          limit: val < minVal ? minVal : maxVal,
+          delta: val < minVal ? (val - minVal).toFixed(2) : (val - maxVal).toFixed(2)
+        });
+      }
+    });
+  });
+
+  lastViolations = violations;
+
+  updateChartTolerance(minVal, maxVal, dwellStartMin, dwellEndMin);
+
+  renderDwellAnalysis({
+    minVal, maxVal,
+    dwellStartMin, dwellEndMin, dwellDuration,
+    lagChannelLabel,
+    rampUpRate, rampDownRate,
+    rampUpStartTemp, rampUpEndTemp, rampUpMinutes,
+    rampDownStartTemp, rampDownEndTemp, rampDownMinutes,
+    perChannelRamps,
+    violations
+  });
+}
+
+function updateChartTolerance(minVal, maxVal, dwellStart, dwellEnd) {
+  if (!chartInstance) return;
+  const opts = chartInstance.options;
+
+  if (!opts.plugins.toleranceBand) opts.plugins.toleranceBand = {};
+
+  chartInstance._toleranceParams = { minVal, maxVal, dwellStart, dwellEnd };
+
+  if (!chartInstance._tolerancePluginRegistered) {
+    chartInstance._tolerancePluginRegistered = true;
+    Chart.register({
+      id: 'toleranceBandPlugin',
+      afterDraw(chart) {
+        const p = chart._toleranceParams;
+        if (!p) return;
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea) return;
+        const { left, right, top, bottom } = chartArea;
+
+        ctx.save();
+
+        if (p.dwellStart !== null || p.dwellEnd !== null) {
+          const xStart = p.dwellStart !== null
+            ? scales.x.getPixelForValue(p.dwellStart) : left;
+          const xEnd = p.dwellEnd !== null
+            ? scales.x.getPixelForValue(p.dwellEnd) : right;
+          const clampedX1 = Math.max(left, Math.min(right, xStart));
+          const clampedX2 = Math.max(left, Math.min(right, xEnd));
+          ctx.fillStyle = 'rgba(249,115,22,0.07)';
+          ctx.fillRect(clampedX1, top, clampedX2 - clampedX1, bottom - top);
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = 'rgba(249,115,22,0.5)';
+          ctx.lineWidth = 1;
+          if (p.dwellStart !== null && clampedX1 > left) {
+            ctx.beginPath(); ctx.moveTo(clampedX1, top); ctx.lineTo(clampedX1, bottom); ctx.stroke();
+          }
+          if (p.dwellEnd !== null && clampedX2 < right) {
+            ctx.beginPath(); ctx.moveTo(clampedX2, top); ctx.lineTo(clampedX2, bottom); ctx.stroke();
+          }
+          ctx.setLineDash([]);
+        }
+
+        const yMin = scales.y.getPixelForValue(p.minVal);
+        if (yMin >= top && yMin <= bottom) {
+          ctx.strokeStyle = '#3b82f6';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([6, 3]);
+          ctx.beginPath(); ctx.moveTo(left, yMin); ctx.lineTo(right, yMin); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#3b82f6';
+          ctx.font = '11px Segoe UI, sans-serif';
+          ctx.fillText(`Min ${p.minVal}°F`, left + 4, yMin - 4);
+        }
+
+        const yMax = scales.y.getPixelForValue(p.maxVal);
+        if (yMax >= top && yMax <= bottom) {
+          ctx.strokeStyle = '#ef4444';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([6, 3]);
+          ctx.beginPath(); ctx.moveTo(left, yMax); ctx.lineTo(right, yMax); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#ef4444';
+          ctx.font = '11px Segoe UI, sans-serif';
+          ctx.fillText(`Max ${p.maxVal}°F`, left + 4, yMax - 4);
+        }
+
+        ctx.restore();
+      }
+    });
+  }
+
+  chartInstance.update();
+}
+
+function renderDwellAnalysis(p) {
+  const panel = document.getElementById('dwellAnalysisPanel');
+  const body  = document.getElementById('dwellAnalysisBody');
+  panel.classList.add('visible');
+
+  const highCount = p.violations.filter(v => v.type === 'HIGH').length;
+  const lowCount  = p.violations.filter(v => v.type === 'LOW').length;
+  const ootClass  = p.violations.length === 0 ? 'pass' : 'fail';
+
+  const fmt1 = v => v !== null ? v.toFixed(1) : '—';
+  const fmtRate = v => v !== null ? `${v >= 0 ? '+' : ''}${v.toFixed(2)} °F/min` : '—';
+
+  const rampRows = p.perChannelRamps.map(ch => `
+    <tr>
+      <td>${ch.label}</td>
+      <td>${fmtRate(ch.rampUp)}</td>
+      <td>${fmtRate(ch.rampDown)}</td>
+    </tr>
+  `).join('');
+
+  const violRows = p.violations.length === 0
+    ? `<tr><td colspan="6" style="text-align:center;color:#3fb950;padding:14px">✓ No out-of-tolerance readings during dwell</td></tr>`
+    : p.violations.map(v => `
+        <tr>
+          <td>${v.time} min</td>
+          <td>${v.channel}</td>
+          <td>${v.value.toFixed(2)} °F</td>
+          <td class="${v.type === 'HIGH' ? 'viol-high' : 'viol-low'}">${v.type}</td>
+          <td>${v.type === 'HIGH' ? p.maxVal : p.minVal} °F</td>
+          <td class="${v.type === 'HIGH' ? 'viol-high' : 'viol-low'}">${v.type === 'HIGH' ? '+' : ''}${v.delta} °F</td>
+        </tr>`).join('');
+
+  body.innerHTML = `
+    <div class="da-section-title">Dwell Window — Auto-detected from lagging TC: ${p.lagChannelLabel}</div>
+    <div class="dwell-analysis-grid">
+      <div class="da-card highlight">
+        <div class="da-label">Dwell Start</div>
+        <div class="da-value">${p.dwellStartMin} <span style="font-size:13px;font-weight:400">min</span></div>
+        <div class="da-sub">Lagging TC reached ${p.minVal}°F</div>
+      </div>
+      <div class="da-card highlight">
+        <div class="da-label">Dwell End</div>
+        <div class="da-value">${p.dwellEndMin} <span style="font-size:13px;font-weight:400">min</span></div>
+        <div class="da-sub">Lagging TC dropped below ${p.minVal}°F</div>
+      </div>
+      <div class="da-card">
+        <div class="da-label">Dwell Duration</div>
+        <div class="da-value">${p.dwellDuration} <span style="font-size:13px;font-weight:400">min</span></div>
+        <div class="da-sub">Within ${p.minVal}–${p.maxVal}°F window</div>
+      </div>
+      <div class="da-card ${ootClass}">
+        <div class="da-label">OOT Readings</div>
+        <div class="da-value">${p.violations.length}</div>
+        <div class="da-sub">${highCount} high · ${lowCount} low</div>
+      </div>
+    </div>
+
+    <div class="da-section-title">Ramp Rates (Average across F-channels)</div>
+    <div class="dwell-analysis-grid">
+      <div class="da-card">
+        <div class="da-label">Ramp-Up Rate</div>
+        <div class="da-value" style="font-size:15px">${fmtRate(p.rampUpRate)}</div>
+        <div class="da-sub">${fmt1(p.rampUpStartTemp)}°F → ${fmt1(p.rampUpEndTemp)}°F over ${p.rampUpMinutes} min</div>
+      </div>
+      <div class="da-card">
+        <div class="da-label">Ramp-Down Rate</div>
+        <div class="da-value" style="font-size:15px">${fmtRate(p.rampDownRate)}</div>
+        <div class="da-sub">${fmt1(p.rampDownStartTemp)}°F → ${fmt1(p.rampDownEndTemp)}°F over ${p.rampDownMinutes} min</div>
+      </div>
+    </div>
+
+    <div class="da-section-title">Per-Channel Ramp Rates</div>
+    <div class="violations-table-wrap">
+      <table class="ramp-table">
+        <thead>
+          <tr>
+            <th>Channel</th>
+            <th>Ramp-Up (°F/min)</th>
+            <th>Ramp-Down (°F/min)</th>
+          </tr>
+        </thead>
+        <tbody>${rampRows}</tbody>
+      </table>
+    </div>
+
+    <div class="da-section-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Out-of-Tolerance Readings During Dwell</span>
+      ${p.violations.length > 0 ? `<button class="btn" onclick="downloadViolationsCSV()" style="font-size:11px;padding:4px 10px">⬇ Export CSV</button>` : ''}
+    </div>
+    <div class="violations-table-wrap">
+      <table class="vtable">
+        <thead>
+          <tr>
+            <th>Time</th><th>Channel</th><th>Reading</th><th>Type</th><th>Limit</th><th>Δ from Limit</th>
+          </tr>
+        </thead>
+        <tbody>${violRows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderViolationsTable() {}
+
+function clearToleranceCheck() {
+  if (chartInstance) {
+    chartInstance._toleranceParams = null;
+    chartInstance.update();
+  }
+  document.getElementById('dwellAnalysisPanel').classList.remove('visible');
+  document.getElementById('violationsPanel').classList.remove('visible');
+  document.getElementById('dwellMin').value = '';
+  document.getElementById('dwellMax').value = '';
+  lastViolations = [];
+}
+
+function downloadViolationsCSV() {
+  if (!lastViolations.length) return;
+  const header = 'Time (min),Channel,Reading (°F),Type,Limit (°F),Delta from Limit (°F)';
+  const rows = lastViolations.map(v =>
+    `${v.time},${v.channel},${v.value.toFixed(2)},${v.type},${v.type === 'HIGH'
+      ? parseFloat(document.getElementById('dwellMax').value)
+      : parseFloat(document.getElementById('dwellMin').value)},${v.delta}`
+  );
+  const blob = new Blob([[header, ...rows].join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = getReportTitle() + ' - Violations.csv';
+  a.click();
+}
+
+function printReport() {
+  const title = getReportTitle();
+  const subtitle = document.getElementById('chartSubtitle').textContent;
+  document.getElementById('printTitleText').textContent = title;
+  document.getElementById('printTitleSub').textContent = subtitle +
+    (new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })
+      ? '  ·  Printed ' + new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })
+      : '');
+  setTimeout(() => window.print(), 150);
+}
+
+function getReportTitle() {
+  const wo  = document.getElementById('poWO').value.trim();
+  const pn  = document.getElementById('poPN').value.trim();
+  const op  = document.getElementById('poOp').value.trim();
+  const act = document.getElementById('poAct').value.trim();
+
+  if (!wo && !pn && !op && !act) return filename || 'Cure Chart Report';
+
+  let title = '';
+  if (wo)  title += `WO#${wo} `;
+  if (pn)  title += `PN# ${pn} `;
+  if (op)  title += `Op${op} `;
+  if (act) title += `Act${act} `;
+  title += 'Cure Chart Report';
+  return title.trim();
+}
+
+function updatePoPreview() {
+  document.getElementById('poPreviewText').textContent = getReportTitle();
+}
+
+function downloadCSV() {
+  if (!minuteData || !headers) return;
+
+  const timeIdx = headers.findIndex(h => h.toLowerCase().includes('time'));
+
+  const csvRows = minuteData.map(r => {
+    return activeColIndices.map(ci => {
+      if (ci === timeIdx) {
+        const secs = parseFloat(r[ci]);
+        return isNaN(secs) ? r[ci] : Math.round(secs / 60);
+      }
+      return r[ci];
+    }).join(',');
+  });
+
+  const content = [activeHeaders.join(','), ...csvRows].join('\n');
+  const blob = new Blob([content], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = getReportTitle() + '.csv';
+  a.click();
+}
+
+function resetFile() {
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  minuteData = null; headers = []; activeHeaders = []; activeColIndices = []; filename = '';
+  lastViolations = [];
+  document.getElementById('chartArea').classList.remove('visible');
+  document.getElementById('violationsPanel').classList.remove('visible');
+  document.getElementById('dwellAnalysisPanel').classList.remove('visible');
+  document.getElementById('dropZone').style.display = '';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('statsRow').innerHTML = '';
+  setStatus('Drop a CSV to begin', '');
+}
+</script>
+</body>
+</html>
