@@ -1,0 +1,2355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Walter & Oanh — Wedding Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #F9F5EF;
+    --parchment: #EDE7DA;
+    --gold: #B89A6A;
+    --gold-light: #D4B98A;
+    --ink: #2A2118;
+    --muted: #7A6E63;
+    --border: #D8CFC2;
+    --white: #FFFFFF;
+    --positive: #5A7A5A;
+    --negative: #8B3A3A;
+    --input-bg: #FFFDF9;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--cream);
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    padding: 32px 40px 0;
+    text-align: center;
+  }
+
+  .header-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .header-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px;
+    font-weight: 300;
+    color: var(--white);
+    letter-spacing: 0.04em;
+  }
+
+  .header-title em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* ── TABS ── */
+  nav {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    margin-top: 28px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 14px 32px;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+  }
+
+  .tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transition: transform 0.2s;
+  }
+
+  .tab-btn.active {
+    color: var(--white);
+  }
+
+  .tab-btn.active::after {
+    transform: scaleX(1);
+  }
+
+  .tab-btn:hover { color: var(--white); }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── SECTION TITLES ── */
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .section-desc {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── STAT STRIP ── */
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .stat-box {
+    background: var(--white);
+    padding: 16px 18px;
+  }
+
+  .stat-box-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .stat-box-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--ink);
+  }
+
+  .stat-box-value.accent { color: var(--gold); }
+  .stat-box-value.positive { color: var(--positive); }
+  .stat-box-value.negative { color: var(--negative); }
+
+  /* ── DATA TABLE ── */
+  .table-wrap { overflow-x: auto; margin-bottom: 4px; }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th {
+    text-align: left;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--parchment);
+    vertical-align: middle;
+  }
+
+  .data-table tr:last-child td { border-bottom: none; }
+
+  .table-input {
+    width: 100%;
+    border: 1px solid transparent;
+    background: transparent;
+    padding: 6px 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    border-radius: 1px;
+    outline: none;
+  }
+
+  .table-input:hover { border-color: var(--border); background: var(--input-bg); }
+  .table-input:focus { border-color: var(--gold); background: var(--input-bg); }
+
+  select.table-input { cursor: pointer; }
+
+  .rsvp-yes { color: var(--positive); font-weight: 600; }
+  .rsvp-no { color: var(--negative); font-weight: 600; }
+  .rsvp-pending { color: var(--muted); }
+
+  .status-confirmed { color: var(--positive); font-weight: 600; }
+  .status-pending { color: var(--gold); font-weight: 600; }
+  .status-contacted { color: var(--muted); }
+
+  /* ── CHECKLIST ── */
+  .checklist-group {
+    margin-bottom: 24px;
+  }
+
+  .checklist-group-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+
+  .checklist-group-progress {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 12px 16px;
+  }
+
+  .checklist-item:first-of-type { border-top: 1px solid var(--border); }
+
+  .checklist-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--gold);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .checklist-item-text {
+    flex: 1;
+    font-size: 13px;
+    color: var(--ink);
+  }
+
+  .checklist-item.done .checklist-item-text {
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+
+  /* ── SEATING CHART ── */
+  .seat-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 0;
+  }
+
+  .seat-chip {
+    background: var(--parchment);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 14px;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+  }
+
+  .seat-chip:active { cursor: grabbing; }
+
+  .seat-chip .chip-remove {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .seat-chip .chip-remove:hover { color: var(--negative); }
+
+  .tables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .table-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    padding: 18px;
+  }
+
+  .table-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--parchment);
+  }
+
+  .table-card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    color: var(--ink);
+  }
+
+  .table-card-count {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  .table-drop-zone {
+    min-height: 60px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-content: flex-start;
+    border: 1px dashed transparent;
+    border-radius: 2px;
+    padding: 4px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .table-drop-zone.drag-over {
+    border-color: var(--gold);
+    background: var(--parchment);
+  }
+
+  .seat-pool.drag-over {
+    border: 1px dashed var(--gold);
+    background: var(--parchment);
+  }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .filter-search {
+    flex: 1;
+    min-width: 180px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    padding: 8px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    border-radius: 1px;
+    outline: none;
+  }
+
+  .filter-search:focus { border-color: var(--gold); }
+  .filter-search::placeholder { color: var(--muted); }
+
+  .filter-select-wrap {
+    position: relative;
+  }
+
+  .filter-select {
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    padding: 8px 28px 8px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+    border-radius: 1px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+  }
+
+  .filter-select:focus { border-color: var(--gold); }
+
+  .filter-select.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .filter-clear {
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: underline;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .filter-clear:hover { color: var(--negative); }
+
+  .filter-count {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+  }
+
+  th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+  }
+
+  th.sortable:hover { color: var(--ink); }
+
+  th.sortable .sort-arrow {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 9px;
+    color: var(--gold);
+  }
+
+  .empty-row td {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    font-style: italic;
+    padding: 24px 8px;
+  }
+
+  /* ── BULK ACTION BAR ── */
+  .bulk-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--ink);
+    color: var(--white);
+    padding: 10px 16px;
+    margin-bottom: 14px;
+    border-radius: 1px;
+    animation: fadeIn 0.15s ease;
+  }
+
+  .bulk-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-light);
+    white-space: nowrap;
+  }
+
+  .bulk-bar .filter-select {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.2);
+    color: var(--white);
+  }
+
+  .bulk-btn {
+    background: var(--gold);
+    border: none;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 7px 14px;
+    cursor: pointer;
+    border-radius: 1px;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  .bulk-btn:hover { background: var(--gold-light); }
+
+  .bulk-btn-danger {
+    background: transparent;
+    border: 1px solid var(--negative);
+    color: #E8A0A0;
+  }
+
+  .bulk-btn-danger:hover { background: var(--negative); color: var(--white); }
+
+  .bulk-divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(255,255,255,0.15);
+  }
+
+  .bulk-bar .filter-clear {
+    color: rgba(255,255,255,0.6);
+  }
+
+  .bulk-bar .filter-clear:hover { color: var(--white); }
+
+  .row-checkbox {
+    accent-color: var(--gold);
+    cursor: pointer;
+    width: 15px;
+    height: 15px;
+  }
+
+  /* ── COST CALCULATOR ── */
+  .calc-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    align-items: start;
+  }
+
+  @media (max-width: 720px) {
+    .calc-layout { grid-template-columns: 1fr; }
+  }
+
+  .calc-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+
+  .calc-section-title {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--parchment);
+  }
+
+  .input-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--parchment);
+  }
+
+  .input-row:last-child { border-bottom: none; }
+
+  .input-label {
+    font-size: 13px;
+    color: var(--ink);
+    flex: 1;
+  }
+
+  .input-hint {
+    font-size: 10px;
+    color: var(--muted);
+    display: block;
+    margin-top: 1px;
+  }
+
+  .input-field {
+    width: 96px;
+    text-align: right;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    padding: 6px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    border-radius: 1px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .input-field:focus { border-color: var(--gold); }
+
+  .input-field.readonly {
+    background: var(--parchment);
+    color: var(--muted);
+    font-size: 12px;
+    cursor: default;
+  }
+
+  /* addon rows */
+  .addon-row {
+    display: grid;
+    grid-template-columns: 1fr 72px 72px 80px;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--parchment);
+  }
+
+  .addon-row:last-child { border-bottom: none; }
+
+  .addon-row .col-label { font-size: 13px; color: var(--ink); }
+  .addon-row .col-head {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  .addon-header {
+    display: grid;
+    grid-template-columns: 1fr 72px 72px 80px;
+    gap: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 6px;
+  }
+
+  .addon-subtotal {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: right;
+  }
+
+  /* ── SUMMARY PANEL ── */
+  .summary-panel {
+    position: sticky;
+    top: 20px;
+  }
+
+  .summary-card {
+    background: var(--ink);
+    color: var(--white);
+    padding: 28px;
+    margin-bottom: 0;
+  }
+
+  .summary-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+
+  .summary-subtitle {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  .summary-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.75);
+  }
+
+  .summary-line:last-of-type { border-bottom: none; }
+
+  .summary-line.subtotal {
+    color: var(--white);
+    font-weight: 600;
+  }
+
+  .summary-line.total {
+    font-size: 15px;
+    color: var(--white);
+    font-weight: 600;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    margin-top: 8px;
+    padding-top: 14px;
+  }
+
+  .summary-amount {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--gold-light);
+    margin-top: 16px;
+    text-align: right;
+  }
+
+  .summary-amount-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: right;
+    margin-bottom: 6px;
+  }
+
+  .min-check {
+    background: var(--parchment);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    margin-top: 0;
+  }
+
+  .min-check-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .min-check-value {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .min-check-value.surplus { color: var(--positive); }
+  .min-check-value.shortfall { color: var(--negative); }
+
+  .cc-section {
+    background: var(--parchment);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 14px 16px;
+  }
+
+  .cc-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .cc-toggle input { accent-color: var(--gold); }
+
+  .cc-amount {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 32px 0;
+  }
+
+  /* ── ADD ROW CONTROLS ── */
+  .add-row-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 7px 14px;
+    cursor: pointer;
+    border-radius: 1px;
+    transition: border-color 0.15s, color 0.15s;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .add-row-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .custom-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--parchment);
+    animation: fadeIn 0.18s ease;
+  }
+
+  .custom-input-row:last-of-type { border-bottom: none; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .custom-label-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    padding: 6px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    border-radius: 1px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .custom-label-input:focus { border-color: var(--gold); }
+  .custom-label-input::placeholder { color: var(--muted); font-style: italic; }
+
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--border);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 4px;
+    line-height: 1;
+    transition: color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .remove-btn:hover { color: var(--negative); }
+
+  /* addon custom rows need 5 cols */
+  .custom-addon-row {
+    display: grid;
+    grid-template-columns: 1fr 72px 72px 80px 24px;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--parchment);
+    animation: fadeIn 0.18s ease;
+  }
+
+  .custom-addon-row:last-of-type { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="header-eyebrow">Wedding Planner</p>
+  <h1 class="header-title">Walter <em>&</em> Oanh</h1>
+  <p class="header-subtitle">Fall 2027 · San Francisco Bay Area</p>
+  <nav>
+    <button class="tab-btn active" onclick="showTab('guests', this)">Guest List</button>
+    <button class="tab-btn" onclick="showTab('vendors', this)">Vendors</button>
+    <button class="tab-btn" onclick="showTab('checklist', this)">Timeline</button>
+    <button class="tab-btn" onclick="showTab('seating', this)">Seating</button>
+    <button class="tab-btn" onclick="showTab('calculator', this)">Cost Calculator</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ═══════════════════════════════════════════════════
+       GUEST LIST & RSVPS TAB
+  ═══════════════════════════════════════════════════ -->
+  <div id="tab-guests" class="tab-panel active">
+    <h2 class="section-title">Guest List & RSVPs</h2>
+    <p class="section-desc">Track invitees, party size, and response status</p>
+
+    <div class="stat-strip" id="guest-stats"></div>
+
+    <div class="calc-section" style="margin-top:20px;">
+      <div class="filter-bar">
+        <input class="filter-search" id="guestSearch" type="text" placeholder="Search name, notes…" oninput="renderGuests()" />
+        <div class="filter-select-wrap">
+          <select class="filter-select" id="filterGroup" onchange="renderGuests()">
+            <option value="">All Groups</option>
+          </select>
+        </div>
+        <div class="filter-select-wrap">
+          <select class="filter-select" id="filterRsvp" onchange="renderGuests()">
+            <option value="">All RSVP</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+            <option value="Pending">Pending</option>
+          </select>
+        </div>
+        <span class="filter-clear" onclick="clearGuestFilters()">Clear filters</span>
+        <span class="filter-count" id="guestFilterCount"></span>
+      </div>
+
+      <div class="bulk-bar" id="guestBulkBar" style="display:none;">
+        <span class="bulk-count" id="guestBulkCount"></span>
+        <select class="filter-select" id="bulkRsvpSelect">
+          <option value="">Set RSVP…</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+          <option value="Pending">Pending</option>
+        </select>
+        <button class="bulk-btn" onclick="applyBulkRsvp()">Apply</button>
+        <span class="bulk-divider"></span>
+        <button class="bulk-btn bulk-btn-danger" onclick="bulkDeleteGuests()">Delete Selected</button>
+        <span class="bulk-divider"></span>
+        <span class="filter-clear" onclick="clearGuestSelection()">Clear selection</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table" id="guest-table">
+          <thead>
+            <tr>
+              <th style="width:32px"><input type="checkbox" id="guestSelectAll" onchange="toggleSelectAllGuests(this.checked)" /></th>
+              <th class="sortable" style="width:22%" onclick="setGuestSort('name')">Name<span class="sort-arrow" id="arrow-name"></span></th>
+              <th class="sortable" style="width:16%" onclick="setGuestSort('group')">Group<span class="sort-arrow" id="arrow-group"></span></th>
+              <th class="sortable" style="width:10%" onclick="setGuestSort('party')">Party Size<span class="sort-arrow" id="arrow-party"></span></th>
+              <th class="sortable" style="width:14%" onclick="setGuestSort('rsvp')">RSVP<span class="sort-arrow" id="arrow-rsvp"></span></th>
+              <th style="width:14%">Meal Choice</th>
+              <th>Notes</th>
+              <th style="width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="guest-tbody"></tbody>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addGuest()">+ Add Guest</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       VENDOR CONTACTS TAB
+  ═══════════════════════════════════════════════════ -->
+  <div id="tab-vendors" class="tab-panel">
+    <h2 class="section-title">Vendor Contacts</h2>
+    <p class="section-desc">Every vendor, their contact info, and contract status</p>
+
+    <div class="calc-section">
+      <div class="table-wrap">
+        <table class="data-table" id="vendor-table">
+          <thead>
+            <tr>
+              <th style="width:14%">Category</th>
+              <th style="width:16%">Company</th>
+              <th style="width:14%">Contact Name</th>
+              <th style="width:16%">Phone</th>
+              <th style="width:16%">Email</th>
+              <th style="width:12%">Status</th>
+              <th>Notes</th>
+              <th style="width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="vendor-tbody"></tbody>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addVendor()">+ Add Vendor</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       TIMELINE / CHECKLIST TAB
+  ═══════════════════════════════════════════════════ -->
+  <div id="tab-checklist" class="tab-panel">
+    <h2 class="section-title">Wedding Planning Timeline</h2>
+    <p class="section-desc">Tasks organized by how far out they typically happen</p>
+
+    <div class="stat-strip" id="checklist-stats"></div>
+
+    <div id="checklist-groups" style="margin-top:20px;"></div>
+
+    <div class="calc-section">
+      <div class="calc-section-title">Add a Task</div>
+      <div class="custom-input-row" style="border:none;">
+        <input class="custom-label-input" id="newTaskLabel" placeholder="Task description" />
+        <select class="input-field" id="newTaskGroup" style="width:160px; text-align:left;">
+          <option>12+ Months Before</option>
+          <option>9–11 Months Before</option>
+          <option>6–8 Months Before</option>
+          <option>3–5 Months Before</option>
+          <option>1–2 Months Before</option>
+          <option>Final Week</option>
+        </select>
+        <button class="add-row-btn" style="width:auto; margin-top:0;" onclick="addTask()">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       SEATING CHART TAB
+  ═══════════════════════════════════════════════════ -->
+  <div id="tab-seating" class="tab-panel">
+    <h2 class="section-title">Seating Chart</h2>
+    <p class="section-desc">Organize guests into tables · drag names between tables</p>
+
+    <div class="calc-section" style="margin-bottom:20px;">
+      <div class="calc-section-title">Unassigned Guests</div>
+      <div class="seat-pool" id="unassigned-pool"></div>
+    </div>
+
+    <div class="tables-grid" id="tables-grid"></div>
+
+    <button class="add-row-btn" onclick="addTable()">+ Add Table</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       COST CALCULATOR TAB
+  ═══════════════════════════════════════════════════ -->
+  <div id="tab-calculator" class="tab-panel">
+
+    <h2 class="section-title">Event Quote Calculator</h2>
+    <p class="section-desc">Casa Real at Ruby Hill Winery · Quote No. EQ50865 · 2027 Peak Season</p>
+
+    <div class="calc-layout">
+
+      <!-- LEFT: INPUTS -->
+      <div>
+
+        <!-- GUEST COUNT -->
+        <div class="calc-section">
+          <div class="calc-section-title">① Guest Count</div>
+          <div class="input-row">
+            <div class="input-label">Adult Guests <span class="input-hint">Age 21+</span></div>
+            <input class="input-field" type="number" id="guestAdult" value="130" min="0" oninput="calc()" />
+          </div>
+          <div class="input-row">
+            <div class="input-label">Teen Guests <span class="input-hint">Age 11–20</span></div>
+            <input class="input-field" type="number" id="guestTeen" value="20" min="0" oninput="calc()" />
+          </div>
+          <div class="input-row">
+            <div class="input-label">Child Guests <span class="input-hint">Age 10 & under</span></div>
+            <input class="input-field" type="number" id="guestChild" value="0" min="0" oninput="calc()" />
+          </div>
+          <div class="input-row">
+            <div class="input-label">Vendor Meals <span class="input-hint">Non-alc + starter/entrée</span></div>
+            <input class="input-field" type="number" id="guestVendor" value="0" min="0" oninput="calc()" />
+          </div>
+          <div id="custom-guests"></div>
+          <button class="add-row-btn" onclick="addCustomGuest()">+ Add Guest Type</button>
+        </div>
+
+        <!-- MENU RATES -->
+        <div class="calc-section">
+          <div class="calc-section-title">② Menu & Rates (per person)</div>
+          <div class="input-row">
+            <div class="input-label">Adult Menu Price <span class="input-hint">Reception Package</span></div>
+            <input class="input-field" type="number" id="rateAdult" value="116" min="0" step="0.01" oninput="calc()" />
+          </div>
+          <div class="input-row">
+            <div class="input-label">Teen Menu Price <span class="input-hint">$20 off adult, no alcohol</span></div>
+            <input class="input-field" type="number" id="rateTeen" value="96" min="0" step="0.01" oninput="calc()" />
+          </div>
+          <div class="input-row">
+            <div class="input-label">Child Menu Price <span class="input-hint">Age 10 & under</span></div>
+            <input class="input-field" type="number" id="rateChild" value="55" min="0" step="0.01" oninput="calc()" />
+          </div>
+          <div class="input-row">
+            <div class="input-label">Vendor Meal Price</div>
+            <input class="input-field" type="number" id="rateVendor" value="55" min="0" step="0.01" oninput="calc()" />
+          </div>
+          <div id="custom-rates"></div>
+          <button class="add-row-btn" onclick="addCustomRate()">+ Add Menu Rate</button>
+        </div>
+
+        <!-- PACKAGE & CEREMONY -->
+        <div class="calc-section">
+          <div class="calc-section-title">③ Packages & Ceremony</div>
+          <div class="input-row">
+            <div class="input-label">Tea Ceremony Package <span class="input-hint">Up to 50 people</span></div>
+            <input class="input-field" type="number" id="pkgTea" value="900" min="0" oninput="calc()" />
+          </div>
+          <div class="input-row">
+            <div class="input-label">Onsite Ceremony Fee <span class="input-hint">+30 min event time</span></div>
+            <input class="input-field" type="number" id="pkgCeremony" value="1500" min="0" oninput="calc()" />
+          </div>
+          <div class="input-row">
+            <div class="input-label">Coordination Service <span class="input-hint">Planning & execution</span></div>
+            <input class="input-field" type="number" id="pkgCoord" value="1200" min="0" oninput="calc()" />
+          </div>
+          <div id="custom-packages"></div>
+          <button class="add-row-btn" onclick="addCustomPackage()">+ Add Package Item</button>
+        </div>
+
+        <!-- OUTSIDE VENDORS -->
+        <div class="calc-section">
+          <div class="calc-section-title">④ Outside Vendors (Le's Catering)</div>
+          <div class="addon-header">
+            <span style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Item</span>
+            <span class="col-head">Unit $</span>
+            <span class="col-head">Qty</span>
+            <span class="col-head" style="text-align:right">Subtotal</span>
+          </div>
+
+          <div class="addon-row">
+            <span class="col-label">Le's Plated Meals</span>
+            <input class="input-field" type="number" id="lesPlatedUnit" value="65" min="0" step="0.01" oninput="calc()" style="width:100%" />
+            <input class="input-field" type="number" id="lesPlatedQty" value="150" min="0" oninput="calc()" style="width:100%" />
+            <span class="addon-subtotal" id="lesPlatedSub">$9,750</span>
+          </div>
+          <div class="addon-row">
+            <span class="col-label">Le's Passed Apps</span>
+            <input class="input-field" type="number" id="lesAppsUnit" value="18" min="0" step="0.01" oninput="calc()" style="width:100%" />
+            <input class="input-field" type="number" id="lesAppsQty" value="150" min="0" oninput="calc()" style="width:100%" />
+            <span class="addon-subtotal" id="lesAppsSub">$2,700</span>
+          </div>
+          <div id="custom-vendors"></div>
+          <button class="add-row-btn" onclick="addCustomVendor()">+ Add Outside Vendor</button>
+        </div>
+
+        <!-- OPTIONAL ADD-ONS -->
+        <div class="calc-section">
+          <div class="calc-section-title">⑤ Optional Add-Ons (enter 0 to exclude)</div>
+          <div class="addon-header">
+            <span style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Item</span>
+            <span class="col-head">Unit $</span>
+            <span class="col-head">Qty</span>
+            <span class="col-head" style="text-align:right">Subtotal</span>
+          </div>
+          <div id="addons-container"></div>
+          <div id="custom-addons"></div>
+          <button class="add-row-btn" onclick="addCustomAddon()">+ Add Custom Add-On</button>
+        </div>
+
+        <!-- FEE RATES -->
+        <div class="calc-section">
+          <div class="calc-section-title">⑥ Fee Rates (venue-set)</div>
+          <div class="input-row">
+            <div class="input-label">Operations Fee Rate <span class="input-hint">% of Food & Bev</span></div>
+            <input class="input-field" type="number" id="opsRate" value="0.25" min="0" step="0.001" oninput="calc()" />
+          </div>
+          <div class="input-row">
+            <div class="input-label">Tax Rate</div>
+            <input class="input-field" type="number" id="taxRate" value="0.1025" min="0" step="0.0001" oninput="calc()" />
+          </div>
+          <div class="input-row">
+            <div class="input-label">Facility Rental <span class="input-hint">Non-taxable</span></div>
+            <input class="input-field" type="number" id="facilityRental" value="3850" min="0" oninput="calc()" />
+          </div>
+          <div class="input-row">
+            <div class="input-label">Guaranteed Minimum <span class="input-hint">Must be met by F&B</span></div>
+            <input class="input-field" type="number" id="guaranteedMin" value="24000" min="0" oninput="calc()" />
+          </div>
+          <div class="input-row">
+            <div class="input-label">Deposits & Credits</div>
+            <input class="input-field" type="number" id="deposits" value="0" min="0" oninput="calc()" />
+          </div>
+          <div id="custom-fees"></div>
+          <button class="add-row-btn" onclick="addCustomFee()">+ Add Fee / Credit</button>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: SUMMARY -->
+      <div class="summary-panel">
+        <div class="summary-card">
+          <div class="summary-title">Cost Summary</div>
+          <div class="summary-subtitle">Auto-calculated</div>
+
+          <div class="summary-line"><span>Adult Meals</span><span id="s-adult">—</span></div>
+          <div class="summary-line"><span>Teen Meals</span><span id="s-teen">—</span></div>
+          <div class="summary-line"><span>Child Meals</span><span id="s-child">—</span></div>
+          <div class="summary-line"><span>Vendor Meals</span><span id="s-vendor">—</span></div>
+          <div class="summary-line"><span>Tea Ceremony</span><span id="s-tea">—</span></div>
+          <div class="summary-line"><span>Ceremony Fee</span><span id="s-ceremony">—</span></div>
+          <div class="summary-line"><span>Coordination</span><span id="s-coord">—</span></div>
+          <div class="summary-line"><span>Outside Vendors</span><span id="s-outside">—</span></div>
+          <div class="summary-line"><span>Add-Ons</span><span id="s-addons">—</span></div>
+
+          <div class="summary-line subtotal" style="margin-top:8px; padding-top:10px; border-top:1px solid rgba(255,255,255,.15)">
+            <span>F&B Total (meals only)</span><span id="s-fnb">—</span>
+          </div>
+          <div class="summary-line"><span>Operations Fee (25%)</span><span id="s-ops">—</span></div>
+          <div class="summary-line"><span>Non-F&B Total</span><span id="s-nonfnb">—</span></div>
+
+          <div class="summary-line subtotal" style="margin-top:8px; padding-top:10px; border-top:1px solid rgba(255,255,255,.15)">
+            <span>Taxable Charges</span><span id="s-taxable">—</span>
+          </div>
+          <div class="summary-line"><span>Tax (10.25%)</span><span id="s-tax">—</span></div>
+          <div class="summary-line"><span>Facility Rental</span><span id="s-facility">—</span></div>
+          <div class="summary-line"><span>Deposits / Credits</span><span id="s-dep">—</span></div>
+
+          <div class="summary-amount-label" style="margin-top:20px">Balance Due</div>
+          <div class="summary-amount" id="s-total">—</div>
+        </div>
+
+        <div class="min-check">
+          <div class="min-check-label">Guaranteed Minimum Check</div>
+          <div class="min-check-value" id="s-mincheck">—</div>
+          <div style="font-size:10px; color:var(--muted); margin-top:4px;" id="s-minlabel">—</div>
+        </div>
+
+        <div class="cc-section">
+          <label class="cc-toggle">
+            <input type="checkbox" id="ccCheck" onchange="calc()" />
+            Paying by credit card (+3% surcharge)
+          </label>
+          <div class="cc-amount" id="s-cc"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // ── localStorage-backed storage shim ──
+  window.storage = {
+    get: (key) => {
+      const val = localStorage.getItem('wp_' + key);
+      return Promise.resolve(val ? { value: val } : null);
+    },
+    set: (key, value) => {
+      try { localStorage.setItem('wp_' + key, value); } catch (e) { console.warn('localStorage full', e); }
+      return Promise.resolve();
+    }
+  };
+
+  // ── Tab switching ──
+  function showTab(id, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ── Add-on data ──
+  const ADDONS = [
+    { id: 'cake',      label: 'Cake',                      unit: 9.75,  qty: 150 },
+    { id: 'dessert',   label: 'Mini Dessert',               unit: 3.5,   qty: 500 },
+    { id: 'poke',      label: 'Poke Station',               unit: 12,    qty: 150 },
+    { id: 'latenite',  label: 'Late Night Food Surcharge',  unit: 750,   qty: 1   },
+    { id: 'boba',      label: 'Boba Bar',                   unit: 4,     qty: 150 },
+    { id: 'scissor',   label: 'Scissor Lift (ceiling)',     unit: 400,   qty: 0   },
+    { id: 'lawn',      label: 'Lawn Games',                 unit: 500,   qty: 0   },
+    { id: 'lights',    label: 'Market Lights',              unit: 600,   qty: 0   },
+    { id: 'heaters',   label: 'Patio Heaters',              unit: 90,    qty: 0   },
+    { id: 'umbrellas', label: 'Outdoor Umbrellas',          unit: 45,    qty: 0   },
+    { id: 'custom',    label: 'Other / Custom',             unit: 0,     qty: 0   },
+  ];
+
+  // Build fixed addon rows
+  const addonsContainer = document.getElementById('addons-container');
+  ADDONS.forEach(a => {
+    const row = document.createElement('div');
+    row.className = 'addon-row';
+    row.innerHTML = `
+      <span class="col-label">${a.label}</span>
+      <input class="input-field" type="number" id="ao_unit_${a.id}" value="${a.unit}" min="0" step="0.01" oninput="calc()" style="width:100%" />
+      <input class="input-field" type="number" id="ao_qty_${a.id}" value="${a.qty}" min="0" oninput="calc()" style="width:100%" />
+      <span class="addon-subtotal" id="ao_sub_${a.id}">$0</span>
+    `;
+    addonsContainer.appendChild(row);
+  });
+
+  // ── Dynamic row counters ──
+  let guestIdx = 0, rateIdx = 0, pkgIdx = 0, vendorIdx = 0, addonIdx = 0, feeIdx = 0;
+
+  // ── Helpers ──
+  function fmt(n) {
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function v(id) {
+    const el = document.getElementById(id);
+    return el ? (parseFloat(el.value) || 0) : 0;
+  }
+  function txt(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+  function removeRow(id) {
+    const el = document.getElementById(id);
+    if (el) { el.remove(); calc(); }
+  }
+
+  // ── ADD: Guest Type (label + count + per-person rate = subtotal) ──
+  function addCustomGuest() {
+    const i = ++guestIdx;
+    const id = `cg_${i}`;
+    const row = document.createElement('div');
+    row.id = id;
+    row.className = 'custom-input-row';
+    row.innerHTML = `
+      <input class="custom-label-input" id="${id}_lbl" placeholder="Guest type label" oninput="calc()" />
+      <input class="input-field" type="number" id="${id}_cnt" value="0" min="0" placeholder="Count" style="width:72px" oninput="calc()" />
+      <input class="input-field" type="number" id="${id}_rate" value="0" min="0" step="0.01" placeholder="$/ea" style="width:72px" oninput="calc()" />
+      <span class="addon-subtotal" id="${id}_sub" style="width:80px; text-align:right; font-size:13px">$0.00</span>
+      <button class="remove-btn" onclick="removeRow('${id}')">×</button>
+    `;
+    document.getElementById('custom-guests').appendChild(row);
+    row.querySelector(`#${id}_lbl`).focus();
+    calc();
+  }
+
+  // ── ADD: Menu Rate (flat single-value row) ──
+  function addCustomRate() {
+    const i = ++rateIdx;
+    const id = `cr_${i}`;
+    const row = document.createElement('div');
+    row.id = id;
+    row.className = 'custom-input-row';
+    row.innerHTML = `
+      <input class="custom-label-input" id="${id}_lbl" placeholder="Menu / rate label" oninput="calc()" />
+      <input class="input-field" type="number" id="${id}_val" value="0" min="0" step="0.01" placeholder="$/person" style="width:96px" oninput="calc()" />
+      <button class="remove-btn" onclick="removeRow('${id}')">×</button>
+    `;
+    document.getElementById('custom-rates').appendChild(row);
+    row.querySelector(`#${id}_lbl`).focus();
+    // Note: custom rates are informational; they don't feed the calc unless paired with a guest row
+  }
+
+  // ── ADD: Package / Flat Fee ──
+  function addCustomPackage() {
+    const i = ++pkgIdx;
+    const id = `cp_${i}`;
+    const row = document.createElement('div');
+    row.id = id;
+    row.className = 'custom-input-row';
+    row.innerHTML = `
+      <input class="custom-label-input" id="${id}_lbl" placeholder="Package / service label" oninput="calc()" />
+      <input class="input-field" type="number" id="${id}_val" value="0" min="0" step="0.01" placeholder="$" style="width:96px" oninput="calc()" />
+      <button class="remove-btn" onclick="removeRow('${id}')">×</button>
+    `;
+    document.getElementById('custom-packages').appendChild(row);
+    row.querySelector(`#${id}_lbl`).focus();
+    calc();
+  }
+
+  // ── ADD: Outside Vendor (unit × qty) ──
+  function addCustomVendor() {
+    const i = ++vendorIdx;
+    const id = `cv_${i}`;
+    const row = document.createElement('div');
+    row.id = id;
+    row.className = 'custom-addon-row';
+    row.innerHTML = `
+      <input class="custom-label-input" id="${id}_lbl" placeholder="Vendor / item label" oninput="calc()" />
+      <input class="input-field" type="number" id="${id}_unit" value="0" min="0" step="0.01" oninput="calc()" style="width:100%" />
+      <input class="input-field" type="number" id="${id}_qty" value="0" min="0" oninput="calc()" style="width:100%" />
+      <span class="addon-subtotal" id="${id}_sub">$0.00</span>
+      <button class="remove-btn" onclick="removeRow('${id}')">×</button>
+    `;
+    document.getElementById('custom-vendors').appendChild(row);
+    row.querySelector(`#${id}_lbl`).focus();
+    calc();
+  }
+
+  // ── ADD: Custom Add-On (unit × qty) ──
+  function addCustomAddon() {
+    const i = ++addonIdx;
+    const id = `ca_${i}`;
+    const row = document.createElement('div');
+    row.id = id;
+    row.className = 'custom-addon-row';
+    row.innerHTML = `
+      <input class="custom-label-input" id="${id}_lbl" placeholder="Add-on label" oninput="calc()" />
+      <input class="input-field" type="number" id="${id}_unit" value="0" min="0" step="0.01" oninput="calc()" style="width:100%" />
+      <input class="input-field" type="number" id="${id}_qty" value="1" min="0" oninput="calc()" style="width:100%" />
+      <span class="addon-subtotal" id="${id}_sub">$0.00</span>
+      <button class="remove-btn" onclick="removeRow('${id}')">×</button>
+    `;
+    document.getElementById('custom-addons').appendChild(row);
+    row.querySelector(`#${id}_lbl`).focus();
+    calc();
+  }
+
+  // ── ADD: Custom Fee / Credit (flat, subtracts if negative) ──
+  function addCustomFee() {
+    const i = ++feeIdx;
+    const id = `cf_${i}`;
+    const row = document.createElement('div');
+    row.id = id;
+    row.className = 'custom-input-row';
+    row.innerHTML = `
+      <input class="custom-label-input" id="${id}_lbl" placeholder="Fee or credit label" oninput="calc()" />
+      <input class="input-field" type="number" id="${id}_val" value="0" step="0.01" placeholder="$ (negative = credit)" style="width:120px" oninput="calc()" />
+      <button class="remove-btn" onclick="removeRow('${id}')">×</button>
+    `;
+    document.getElementById('custom-fees').appendChild(row);
+    row.querySelector(`#${id}_lbl`).focus();
+    calc();
+  }
+
+  // ── Helpers to sum dynamic rows ──
+  function sumCustomGuests() {
+    let total = 0;
+    document.querySelectorAll('[id^="cg_"][id$="_sub"]').forEach(el => {
+      const id = el.id.replace('_sub','');
+      const sub = v(`${id}_cnt`) * v(`${id}_rate`);
+      el.textContent = fmt(sub);
+      total += sub;
+    });
+    return total;
+  }
+
+  function sumCustomPackages() {
+    let total = 0;
+    for (let i = 1; i <= pkgIdx; i++) {
+      const id = `cp_${i}`;
+      if (document.getElementById(id)) total += v(`${id}_val`);
+    }
+    return total;
+  }
+
+  function sumCustomVendors() {
+    let total = 0;
+    document.querySelectorAll('[id^="cv_"][id$="_sub"]').forEach(el => {
+      const id = el.id.replace('_sub','');
+      const sub = v(`${id}_unit`) * v(`${id}_qty`);
+      el.textContent = fmt(sub);
+      total += sub;
+    });
+    return total;
+  }
+
+  function sumCustomAddons() {
+    let total = 0;
+    document.querySelectorAll('[id^="ca_"][id$="_sub"]').forEach(el => {
+      const id = el.id.replace('_sub','');
+      const sub = v(`${id}_unit`) * v(`${id}_qty`);
+      el.textContent = fmt(sub);
+      total += sub;
+    });
+    return total;
+  }
+
+  function sumCustomFees() {
+    let total = 0;
+    for (let i = 1; i <= feeIdx; i++) {
+      const id = `cf_${i}`;
+      if (document.getElementById(id)) total += v(`${id}_val`);
+    }
+    return total;
+  }
+
+  // ── Main calculation ──
+  function calc() {
+    const adultMeals   = v('guestAdult')  * v('rateAdult');
+    const teenMeals    = v('guestTeen')   * v('rateTeen');
+    const childMeals   = v('guestChild')  * v('rateChild');
+    const vendorMeals  = v('guestVendor') * v('rateVendor');
+    const customGuests = sumCustomGuests();
+    const tea          = v('pkgTea');
+    const ceremony     = v('pkgCeremony');
+    const coord        = v('pkgCoord');
+    const customPkgs   = sumCustomPackages();
+
+    // Outside vendor sub
+    const lesPlated = v('lesPlatedUnit') * v('lesPlatedQty');
+    const lesApps   = v('lesAppsUnit')   * v('lesAppsQty');
+    document.getElementById('lesPlatedSub').textContent = fmt(lesPlated);
+    document.getElementById('lesAppsSub').textContent   = fmt(lesApps);
+    const outsideTotal = lesPlated + lesApps + sumCustomVendors();
+
+    // Add-ons
+    let addonsTotal = 0;
+    ADDONS.forEach(a => {
+      const sub = v(`ao_unit_${a.id}`) * v(`ao_qty_${a.id}`);
+      document.getElementById(`ao_sub_${a.id}`).textContent = fmt(sub);
+      addonsTotal += sub;
+    });
+    addonsTotal += sumCustomAddons();
+
+    const fnb         = adultMeals + teenMeals + childMeals + vendorMeals + customGuests;
+    const opsRate     = v('opsRate');
+    const opsFee      = fnb * opsRate;
+    const nonFnb      = tea + ceremony + coord + customPkgs + outsideTotal + addonsTotal;
+    const taxable     = fnb + opsFee + nonFnb;
+    const taxRate     = v('taxRate');
+    const tax         = taxable * taxRate;
+    const facility    = v('facilityRental');
+    const deposits    = v('deposits');
+    const customFees  = sumCustomFees();
+    const subtotal    = taxable + tax + facility - deposits + customFees;
+
+    // CC surcharge
+    const ccRate      = 0.03;
+    const ccAmt       = subtotal * ccRate;
+    const ccTotal     = subtotal + ccAmt;
+    const withCC      = document.getElementById('ccCheck').checked;
+    const finalTotal  = withCC ? ccTotal : subtotal;
+
+    // Min check
+    const guaranteed  = v('guaranteedMin');
+    const delta       = fnb - guaranteed;
+
+    // Update summary
+    document.getElementById('s-adult').textContent    = fmt(adultMeals);
+    document.getElementById('s-teen').textContent     = fmt(teenMeals);
+    document.getElementById('s-child').textContent    = fmt(childMeals);
+    document.getElementById('s-vendor').textContent   = fmt(vendorMeals);
+    document.getElementById('s-tea').textContent      = fmt(tea);
+    document.getElementById('s-ceremony').textContent = fmt(ceremony);
+    document.getElementById('s-coord').textContent    = fmt(coord);
+    document.getElementById('s-outside').textContent  = fmt(outsideTotal);
+    document.getElementById('s-addons').textContent   = fmt(addonsTotal);
+    document.getElementById('s-fnb').textContent      = fmt(fnb);
+    document.getElementById('s-ops').textContent      = fmt(opsFee);
+    document.getElementById('s-nonfnb').textContent   = fmt(nonFnb);
+    document.getElementById('s-taxable').textContent  = fmt(taxable);
+    document.getElementById('s-tax').textContent      = fmt(tax);
+    document.getElementById('s-facility').textContent = fmt(facility);
+    document.getElementById('s-dep').textContent      = deposits > 0 ? '−' + fmt(deposits) : fmt(0);
+    document.getElementById('s-total').textContent    = fmt(finalTotal);
+
+    const minEl    = document.getElementById('s-mincheck');
+    const minLabel = document.getElementById('s-minlabel');
+    minEl.textContent = (delta >= 0 ? '+' : '') + fmt(delta);
+    minEl.className = 'min-check-value ' + (delta >= 0 ? 'surplus' : 'shortfall');
+    minLabel.textContent = delta >= 0
+      ? 'Minimum exceeded — you\'re good!'
+      : 'Shortfall — must be paid to meet minimum.';
+
+    const ccDiv = document.getElementById('s-cc');
+    if (withCC) {
+      ccDiv.textContent = `+${fmt(ccAmt)} surcharge → ${fmt(ccTotal)} total`;
+    } else {
+      ccDiv.textContent = `3% surcharge would add ${fmt(ccAmt)} if paying by card`;
+    }
+
+    saveCalcState();
+  }
+
+  const CALC_FIXED_IDS = [
+    'guestAdult','guestTeen','guestChild','guestVendor',
+    'rateAdult','rateTeen','rateChild','rateVendor',
+    'pkgTea','pkgCeremony','pkgCoord',
+    'lesPlatedUnit','lesPlatedQty','lesAppsUnit','lesAppsQty',
+    'opsRate','taxRate','facilityRental','guaranteedMin','deposits',
+  ];
+
+  function saveCalcState() {
+    const state = {};
+    CALC_FIXED_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) state[id] = el.value;
+    });
+    ADDONS.forEach(a => {
+      const u = document.getElementById(`ao_unit_${a.id}`);
+      const q = document.getElementById(`ao_qty_${a.id}`);
+      if (u) state[`ao_unit_${a.id}`] = u.value;
+      if (q) state[`ao_qty_${a.id}`]  = q.value;
+    });
+    const cc = document.getElementById('ccCheck');
+    if (cc) state['ccCheck'] = cc.checked;
+    localStorage.setItem('wp_calcState', JSON.stringify(state));
+  }
+
+  function loadCalcState() {
+    try {
+      const raw = localStorage.getItem('wp_calcState');
+      if (!raw) return;
+      const state = JSON.parse(raw);
+      Object.entries(state).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = val;
+        else el.value = val;
+      });
+    } catch (e) { console.warn('loadCalcState failed', e); }
+  }
+
+  // ════════════════════════════════════════════════════
+  // GUEST LIST & RSVPs
+  // ════════════════════════════════════════════════════
+  let guests = [];
+  let guestUid = 0;
+
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  async function loadGuests() {
+    try {
+      const r = await window.storage.get('guests');
+      guests = r ? JSON.parse(r.value) : defaultGuests();
+    } catch (e) {
+      guests = defaultGuests();
+    }
+    renderGuests();
+  }
+
+  function defaultGuests() {
+    return [
+      { id: uid(), name: 'Walter Hsieh', group: 'Couple', party: 1, rsvp: 'Yes', meal: 'Adult', notes: 'Groom' },
+      { id: uid(), name: 'Oanh', group: 'Couple', party: 1, rsvp: 'Yes', meal: 'Adult', notes: 'Bride' },
+      { id: uid(), name: 'Ong Ngoai', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $500' },
+      { id: uid(), name: 'Ba Ngoai', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Dad', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $10,000' },
+      { id: uid(), name: 'Mom', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Thinh', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $1,000' },
+      { id: uid(), name: 'Nhan', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Jason', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Jonathan', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Hien Le Nguyen', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $500' },
+      { id: uid(), name: 'Nguyet Tran', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Duong Hue', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $1,000' },
+      { id: uid(), name: 'Di Thu', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Linh', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $500' },
+      { id: uid(), name: 'Di Thu', group: 'Mutual – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Linh', group: 'Family Request – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Bi', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Cuong', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Thu Ly Bi\'s dad', group: 'Family Request – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $500' },
+      { id: uid(), name: 'Huong Vo Bi\'s mom', group: 'Family Request – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Mo An', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $1,500' },
+      { id: uid(), name: 'Nu', group: 'Bride – Family', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Amy', group: 'Bride – Family', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Vinh', group: 'Bride – Family', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Cau Thuan', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Di Hanh', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $1,000' },
+      { id: uid(), name: 'Duong Thanh', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Kristina', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'James', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Di Hang', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $1,500' },
+      { id: uid(), name: 'Duong Hoang', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Thao Pham', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Andrew Song', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Ngan Pham', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Vinh', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Vinh', group: 'Bride – Friend', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Di hai', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Di Nam', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only · Gift: $500' },
+      { id: uid(), name: 'Chu Cu', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Co Hang', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 38', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Unlikely · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 39', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Unlikely · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 40', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Unlikely · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 41', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Unlikely · Attending: Rec. only' },
+      { id: uid(), name: 'Co hai Luyen', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only · Gift: $500' },
+      { id: uid(), name: 'Chu Hai Luyen', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Co Thuy', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Chu Tung', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only · Gift: $500' },
+      { id: uid(), name: 'Co Phuong', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Chu Hoang', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Chu Don', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Co Quyen', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Co Huong', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only · Gift: $500' },
+      { id: uid(), name: 'Chu Bay', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 52', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 53', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 54', group: 'Bride – Other', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe' },
+      { id: uid(), name: 'Guest 55', group: 'Bride – Other', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe' },
+      { id: uid(), name: 'Guest 56', group: 'Bride – Other', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe' },
+      { id: uid(), name: 'Guest 57', group: 'Bride – Other', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe' },
+      { id: uid(), name: 'Guest 58', group: 'Bride – Other', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe' },
+      { id: uid(), name: 'Guest 59', group: 'Bride – Other', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe' },
+      { id: uid(), name: 'Guest 60', group: 'Bride – Other', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe' },
+      { id: uid(), name: 'Guest 61', group: 'Bride – Other', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe' },
+      { id: uid(), name: 'Guest 62', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Unlikely · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 63', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Unlikely · Attending: Rec. only' },
+      { id: uid(), name: 'Di Hai', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $1,000' },
+      { id: uid(), name: 'Duong Hai', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Phong La', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only · Gift: $300' },
+      { id: uid(), name: 'Stephani Sato', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Charlotte La', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Trang La', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $1,000' },
+      { id: uid(), name: 'Daniel Akorn', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Ava Akorn', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Ellie Akorn', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Samuel Akorn', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Robert La', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only · Gift: $700' },
+      { id: uid(), name: 'Tran Nguyen-Hoang', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Bradley La', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Pierce La', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Nguyet Nguyen', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only · Gift: $300' },
+      { id: uid(), name: 'Nguyet huband', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Eric Tran', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Rec. only' },
+      { id: uid(), name: 'The Nguyen', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Ngan Nguyen', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only · Gift: $250' },
+      { id: uid(), name: 'Alan Nguyen', group: 'Mutual – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Eric Tran', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 85', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Alan Nguyen', group: 'Bride – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Rec. only' },
+      { id: uid(), name: 'Wayne Hsieh', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only · Gift: $10,000' },
+      { id: uid(), name: 'Lisa Hao-Hsieh', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Grace Hsieh', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only' },
+      { id: uid(), name: 'Jetty Sapinoso', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only · Gift: $500' },
+      { id: uid(), name: 'Iris Hsieh', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only · Gift: $500' },
+      { id: uid(), name: 'Nguyen brother', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Rec. only · Gift: $500' },
+      { id: uid(), name: 'Nguyen brother', group: 'Bride – Friend', party: 2, rsvp: 'Pending', meal: '', notes: 'Attending: Both · Gift: $500' },
+      { id: uid(), name: 'Ali', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Attending: Both' },
+      { id: uid(), name: 'Nguyen Nguyen', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $500' },
+      { id: uid(), name: 'Ni Nguyen', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both' },
+      { id: uid(), name: 'Hannah Huynh', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $500' },
+      { id: uid(), name: 'Guest 96', group: 'Mutual – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 97', group: 'Mutual – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Hannah bf', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both' },
+      { id: uid(), name: 'Nhi Nguyen', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $200' },
+      { id: uid(), name: 'Nhi', group: 'Bride – Friend', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both' },
+      { id: uid(), name: 'Kasey', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $200' },
+      { id: uid(), name: 'Guest 102', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 103', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 104', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 105', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 106', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Patrick', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both' },
+      { id: uid(), name: 'Lanchi', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $300' },
+      { id: uid(), name: 'Kevin', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Guest 110', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 111', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 112', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 113', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 114', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 115', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 116', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 117', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 118', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 119', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 120', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 121', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 122', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 123', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 124', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 125', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 126', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 127', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 128', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 129', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 130', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 131', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 132', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 133', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 134', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 135', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 136', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 137', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 138', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 139', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Unlikely · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 140', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Unlikely · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 141', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 142', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 143', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 144', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 145', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 146', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 147', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 148', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 149', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 150', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 151', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 152', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 153', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Guest 154', group: 'Groom – Family', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Rec. only' },
+      { id: uid(), name: 'Patricia', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $200' },
+      { id: uid(), name: 'Patricia', group: 'Bride – Friend', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Hanh & husband', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Both' },
+      { id: uid(), name: 'Minh', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $300' },
+      { id: uid(), name: 'Kenneth', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Caitlyn', group: 'Bride – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Caitlyn', group: 'Bride – Coworker', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $200' },
+      { id: uid(), name: 'Alvin', group: 'Bride – Friend', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Eileen Bernadette', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both' },
+      { id: uid(), name: 'Will Bernadette', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Anja', group: 'Bride – Friend', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Hieu', group: 'Bride – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Hieu', group: 'Bride – Friend', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Trevor Wong', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Grace', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Moses', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Monica', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Kevin', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Evelyn', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Toufic', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Toufic gf', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Jon', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Soyoung', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Eddy', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Connie', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'David', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Andrew )', group: 'Groom – Friend', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Josh Pak', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Bailey', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Kenneth', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Richard', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'MJ', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Patrick', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Anita', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Chris Lim', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Nicole', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Maybe · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Brandon', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Brandon', group: 'Groom – Friend', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Praiser', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Stephan Chung', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Kevin Chung', group: 'Groom – Friend', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Definite · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Brian Tom', group: 'Bride – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Brian', group: 'Bride – Coworker', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Sam Almudak', group: 'Bride – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Sam', group: 'Bride – Coworker', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'John Stonham', group: 'Bride – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Min Bang', group: 'Bride – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Min', group: 'Bride – Coworker', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Ashley Sayyae', group: 'Bride – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Ashley', group: 'Bride – Coworker', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Josh Robinson', group: 'Bride – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Josh', group: 'Bride – Coworker', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Jennifer', group: 'Bride – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Jennifer', group: 'Bride – Coworker', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Monica Lee', group: 'Bride – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Monica', group: 'Bride – Coworker', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Nurdin', group: 'Bride – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Nurdin', group: 'Bride – Coworker', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'My Ta', group: 'Bride – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Ky Ngo', group: 'Bride – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Thuy\'s friends', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Thuy\'s friends', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Thuy\'s friends', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Thuy\'s friends', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Thuy\'s friends', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Co Nguyet', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Chi Van', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Chu Hiep', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Chu Hiep', group: 'Family Request – Coworker', party: 2, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Thinh\'s friend', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Thinh\'s friend', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Thinh\'s friend', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Thinh\'s friend', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Thinh\'s friend', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+      { id: uid(), name: 'Thinh\'s friend', group: 'Family Request – Coworker', party: 1, rsvp: 'Pending', meal: '', notes: 'Invite likelihood: Probably · Attending: Both · Gift: $150' },
+    ];
+  }
+
+  async function saveGuests() {
+    try { await window.storage.set('guests', JSON.stringify(guests)); } catch (e) { console.error(e); }
+  }
+
+  let guestSortField = null;
+  let guestSortDir = 1;
+  let selectedGuestIds = new Set();
+
+  function setGuestSort(field) {
+    if (guestSortField === field) {
+      guestSortDir = -guestSortDir;
+    } else {
+      guestSortField = field;
+      guestSortDir = 1;
+    }
+    renderGuests();
+  }
+
+  function clearGuestFilters() {
+    document.getElementById('guestSearch').value = '';
+    document.getElementById('filterGroup').value = '';
+    document.getElementById('filterRsvp').value = '';
+    guestSortField = null;
+    renderGuests();
+  }
+
+  function populateGroupFilter() {
+    const sel = document.getElementById('filterGroup');
+    const current = sel.value;
+    const groups = Array.from(new Set(guests.map(g => g.group).filter(Boolean))).sort();
+    sel.innerHTML = '<option value="">All Groups</option>' + groups.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+    if (groups.includes(current)) sel.value = current;
+  }
+
+  function renderGuests() {
+    populateGroupFilter();
+
+    const search = (document.getElementById('guestSearch').value || '').toLowerCase().trim();
+    const groupFilter = document.getElementById('filterGroup').value;
+    const rsvpFilter = document.getElementById('filterRsvp').value;
+
+    let filtered = guests.filter(g => {
+      if (groupFilter && g.group !== groupFilter) return false;
+      if (rsvpFilter && g.rsvp !== rsvpFilter) return false;
+      if (search) {
+        const hay = `${g.name} ${g.group} ${g.meal} ${g.notes}`.toLowerCase();
+        if (!hay.includes(search)) return false;
+      }
+      return true;
+    });
+
+    if (guestSortField) {
+      filtered = filtered.slice().sort((a, b) => {
+        let av = a[guestSortField], bv = b[guestSortField];
+        if (guestSortField === 'party') { av = av || 0; bv = bv || 0; }
+        else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+        if (av < bv) return -1 * guestSortDir;
+        if (av > bv) return 1 * guestSortDir;
+        return 0;
+      });
+    }
+
+    ['name','group','party','rsvp'].forEach(f => {
+      const arrow = document.getElementById('arrow-' + f);
+      if (arrow) arrow.textContent = guestSortField === f ? (guestSortDir === 1 ? '▲' : '▼') : '';
+    });
+
+    document.querySelectorAll('.filter-select').forEach(sel => {
+      sel.classList.toggle('active', !!sel.value);
+    });
+
+    const tbody = document.getElementById('guest-tbody');
+    tbody.innerHTML = '';
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="8">No guests match the current filters</td></tr>`;
+    }
+
+    // prune selection of guests no longer existing
+    const allIds = new Set(guests.map(g => g.id));
+    selectedGuestIds.forEach(id => { if (!allIds.has(id)) selectedGuestIds.delete(id); });
+
+    filtered.forEach(g => {
+      const tr = document.createElement('tr');
+      const checked = selectedGuestIds.has(g.id) ? 'checked' : '';
+      tr.innerHTML = `
+        <td><input type="checkbox" class="row-checkbox" ${checked} onchange="toggleGuestSelect('${g.id}', this.checked)" /></td>
+        <td><input class="table-input" value="${escapeHtml(g.name)}" oninput="updateGuest('${g.id}','name',this.value)" placeholder="Guest name" /></td>
+        <td><input class="table-input" value="${escapeHtml(g.group)}" oninput="updateGuest('${g.id}','group',this.value)" placeholder="e.g. Bride's family" /></td>
+        <td><input class="table-input" type="number" min="0" style="text-align:center" value="${g.party}" oninput="updateGuest('${g.id}','party',this.value)" /></td>
+        <td>
+          <select class="table-input" onchange="updateGuest('${g.id}','rsvp',this.value)">
+            ${['Pending','Yes','No'].map(o => `<option ${g.rsvp===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </td>
+        <td><input class="table-input" value="${escapeHtml(g.meal||'')}" oninput="updateGuest('${g.id}','meal',this.value)" placeholder="—" /></td>
+        <td><input class="table-input" value="${escapeHtml(g.notes||'')}" oninput="updateGuest('${g.id}','notes',this.value)" placeholder="—" /></td>
+        <td><button class="remove-btn" onclick="removeGuest('${g.id}')">×</button></td>
+      `;
+      const rsvpSelect = tr.querySelector('select');
+      rsvpSelect.className = 'table-input ' + (g.rsvp === 'Yes' ? 'rsvp-yes' : g.rsvp === 'No' ? 'rsvp-no' : 'rsvp-pending');
+      tbody.appendChild(tr);
+    });
+
+    const selectAllBox = document.getElementById('guestSelectAll');
+    const visibleIds = filtered.map(g => g.id);
+    selectAllBox.checked = visibleIds.length > 0 && visibleIds.every(id => selectedGuestIds.has(id));
+    selectAllBox.indeterminate = visibleIds.some(id => selectedGuestIds.has(id)) && !selectAllBox.checked;
+
+    renderBulkBar();
+
+    const countLabel = document.getElementById('guestFilterCount');
+    countLabel.textContent = (filtered.length === guests.length)
+      ? `${guests.length} guests`
+      : `${filtered.length} of ${guests.length} guests`;
+
+    renderGuestStats();
+    renderSeatingPool();
+  }
+
+  function toggleGuestSelect(id, checked) {
+    if (checked) selectedGuestIds.add(id);
+    else selectedGuestIds.delete(id);
+    renderGuests();
+  }
+
+  function toggleSelectAllGuests(checked) {
+    // applies to currently visible/filtered rows only
+    const search = (document.getElementById('guestSearch').value || '').toLowerCase().trim();
+    const groupFilter = document.getElementById('filterGroup').value;
+    const rsvpFilter = document.getElementById('filterRsvp').value;
+    const visible = guests.filter(g => {
+      if (groupFilter && g.group !== groupFilter) return false;
+      if (rsvpFilter && g.rsvp !== rsvpFilter) return false;
+      if (search) {
+        const hay = `${g.name} ${g.group} ${g.meal} ${g.notes}`.toLowerCase();
+        if (!hay.includes(search)) return false;
+      }
+      return true;
+    });
+    visible.forEach(g => {
+      if (checked) selectedGuestIds.add(g.id);
+      else selectedGuestIds.delete(g.id);
+    });
+    renderGuests();
+  }
+
+  function clearGuestSelection() {
+    selectedGuestIds.clear();
+    renderGuests();
+  }
+
+  function renderBulkBar() {
+    const bar = document.getElementById('guestBulkBar');
+    const count = selectedGuestIds.size;
+    if (count === 0) {
+      bar.style.display = 'none';
+      return;
+    }
+    bar.style.display = 'flex';
+    document.getElementById('guestBulkCount').textContent = `${count} selected`;
+  }
+
+  function applyBulkRsvp() {
+    const value = document.getElementById('bulkRsvpSelect').value;
+    if (!value) return;
+    guests.forEach(g => {
+      if (selectedGuestIds.has(g.id)) g.rsvp = value;
+    });
+    document.getElementById('bulkRsvpSelect').value = '';
+    saveGuests();
+    renderGuests();
+  }
+
+  function bulkDeleteGuests() {
+    if (selectedGuestIds.size === 0) return;
+    guests = guests.filter(g => !selectedGuestIds.has(g.id));
+    selectedGuestIds.clear();
+    saveGuests();
+    renderGuests();
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function addGuest() {
+    guests.push({ id: uid(), name: '', group: '', party: 1, rsvp: 'Pending', meal: '', notes: '' });
+    saveGuests();
+    renderGuests();
+  }
+
+  function updateGuest(id, field, value) {
+    const g = guests.find(x => x.id === id);
+    if (!g) return;
+    g[field] = field === 'party' ? (parseInt(value) || 0) : value;
+    saveGuests();
+    if (field === 'rsvp' || field === 'party') renderGuestStats();
+    if (field === 'rsvp' || field === 'name') renderSeatingPool();
+  }
+
+  function removeGuest(id) {
+    guests = guests.filter(x => x.id !== id);
+    saveGuests();
+    renderGuests();
+  }
+
+  function renderGuestStats() {
+    const total = guests.length;
+    const yes = guests.filter(g => g.rsvp === 'Yes');
+    const no = guests.filter(g => g.rsvp === 'No').length;
+    const pending = guests.filter(g => g.rsvp === 'Pending').length;
+    const headcount = yes.reduce((s, g) => s + (g.party || 0), 0);
+
+    document.getElementById('guest-stats').innerHTML = `
+      <div class="stat-box"><div class="stat-box-label">Invited</div><div class="stat-box-value">${total}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Confirmed Yes</div><div class="stat-box-value positive">${yes.length}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Declined</div><div class="stat-box-value negative">${no}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Pending</div><div class="stat-box-value">${pending}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Headcount</div><div class="stat-box-value accent">${headcount}</div></div>
+    `;
+  }
+
+  // ════════════════════════════════════════════════════
+  // VENDOR CONTACTS
+  // ════════════════════════════════════════════════════
+  let vendors = [];
+
+  async function loadVendors() {
+    try {
+      const r = await window.storage.get('vendors');
+      vendors = r ? JSON.parse(r.value) : defaultVendors();
+    } catch (e) {
+      vendors = defaultVendors();
+    }
+    renderVendors();
+  }
+
+  function defaultVendors() {
+    return [
+      { id: uid(), category: 'Venue', company: 'Casa Real / Ruby Hill Winery', contact: '', phone: '', email: '', status: 'Contacted', notes: 'Quote EQ50865' },
+      { id: uid(), category: 'Catering', company: "Le's Catering", contact: '', phone: '', email: '', status: 'Contacted', notes: 'Outside vendor — plated meals & passed apps' },
+    ];
+  }
+
+  async function saveVendors() {
+    try { await window.storage.set('vendors', JSON.stringify(vendors)); } catch (e) { console.error(e); }
+  }
+
+  function renderVendors() {
+    const tbody = document.getElementById('vendor-tbody');
+    tbody.innerHTML = '';
+    vendors.forEach(vd => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input class="table-input" value="${escapeHtml(vd.category)}" oninput="updateVendor('${vd.id}','category',this.value)" placeholder="e.g. Photography" /></td>
+        <td><input class="table-input" value="${escapeHtml(vd.company)}" oninput="updateVendor('${vd.id}','company',this.value)" placeholder="Company name" /></td>
+        <td><input class="table-input" value="${escapeHtml(vd.contact)}" oninput="updateVendor('${vd.id}','contact',this.value)" placeholder="—" /></td>
+        <td><input class="table-input" value="${escapeHtml(vd.phone)}" oninput="updateVendor('${vd.id}','phone',this.value)" placeholder="—" /></td>
+        <td><input class="table-input" value="${escapeHtml(vd.email)}" oninput="updateVendor('${vd.id}','email',this.value)" placeholder="—" /></td>
+        <td>
+          <select class="table-input" onchange="updateVendor('${vd.id}','status',this.value)">
+            ${['Researching','Contacted','Booked','Confirmed','Paid'].map(o => `<option ${vd.status===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </td>
+        <td><input class="table-input" value="${escapeHtml(vd.notes)}" oninput="updateVendor('${vd.id}','notes',this.value)" placeholder="—" /></td>
+        <td><button class="remove-btn" onclick="removeVendor('${vd.id}')">×</button></td>
+      `;
+      const statusSelect = tr.querySelector('select');
+      statusSelect.className = 'table-input ' + (vd.status === 'Booked' || vd.status === 'Confirmed' || vd.status === 'Paid' ? 'status-confirmed' : vd.status === 'Contacted' ? 'status-pending' : 'status-contacted');
+      tbody.appendChild(tr);
+    });
+  }
+
+  function addVendor() {
+    vendors.push({ id: uid(), category: '', company: '', contact: '', phone: '', email: '', status: 'Researching', notes: '' });
+    saveVendors();
+    renderVendors();
+  }
+
+  function updateVendor(id, field, value) {
+    const vd = vendors.find(x => x.id === id);
+    if (!vd) return;
+    vd[field] = value;
+    saveVendors();
+    if (field === 'status') renderVendors();
+  }
+
+  function removeVendor(id) {
+    vendors = vendors.filter(x => x.id !== id);
+    saveVendors();
+    renderVendors();
+  }
+
+  // ════════════════════════════════════════════════════
+  // TIMELINE / CHECKLIST
+  // ════════════════════════════════════════════════════
+  let tasks = [];
+  const TASK_GROUPS = ['12+ Months Before', '9–11 Months Before', '6–8 Months Before', '3–5 Months Before', '1–2 Months Before', 'Final Week'];
+
+  async function loadTasks() {
+    try {
+      const r = await window.storage.get('tasks');
+      tasks = r ? JSON.parse(r.value) : defaultTasks();
+    } catch (e) {
+      tasks = defaultTasks();
+    }
+    renderTasks();
+  }
+
+  function defaultTasks() {
+    const d = (label, group, done=false) => ({ id: uid(), label, group, done });
+    return [
+      d('Book ceremony & reception venue', '12+ Months Before', true),
+      d('Set wedding budget', '12+ Months Before', true),
+      d('Choose wedding party', '12+ Months Before'),
+      d('Book photographer & videographer', '9–11 Months Before'),
+      d('Book caterer', '9–11 Months Before'),
+      d('Choose & order wedding dress', '9–11 Months Before'),
+      d('Send save-the-dates', '6–8 Months Before'),
+      d('Book florist', '6–8 Months Before'),
+      d('Book DJ / band', '6–8 Months Before'),
+      d('Order invitations', '3–5 Months Before'),
+      d('Finalize menu & cake', '3–5 Months Before'),
+      d('Book hair & makeup trial', '3–5 Months Before'),
+      d('Mail invitations', '1–2 Months Before'),
+      d('Final venue walkthrough', '1–2 Months Before'),
+      d('Confirm final headcount with venue', '1–2 Months Before'),
+      d('Create seating chart', 'Final Week'),
+      d('Pack for honeymoon', 'Final Week'),
+      d('Confirm vendor arrival times', 'Final Week'),
+    ];
+  }
+
+  async function saveTasks() {
+    try { await window.storage.set('tasks', JSON.stringify(tasks)); } catch (e) { console.error(e); }
+  }
+
+  function renderTasks() {
+    const container = document.getElementById('checklist-groups');
+    container.innerHTML = '';
+    let totalDone = 0;
+
+    TASK_GROUPS.forEach(group => {
+      const groupTasks = tasks.filter(t => t.group === group);
+      if (groupTasks.length === 0) return;
+      const done = groupTasks.filter(t => t.done).length;
+      totalDone += done;
+
+      const div = document.createElement('div');
+      div.className = 'checklist-group';
+      div.innerHTML = `
+        <div class="checklist-group-title">${group}</div>
+        <div class="checklist-group-progress">${done} of ${groupTasks.length} complete</div>
+        ${groupTasks.map(t => `
+          <div class="checklist-item ${t.done ? 'done' : ''}">
+            <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask('${t.id}')" />
+            <span class="checklist-item-text">${escapeHtml(t.label)}</span>
+            <button class="remove-btn" onclick="removeTask('${t.id}')">×</button>
+          </div>
+        `).join('')}
+      `;
+      container.appendChild(div);
+    });
+
+    document.getElementById('checklist-stats').innerHTML = `
+      <div class="stat-box"><div class="stat-box-label">Total Tasks</div><div class="stat-box-value">${tasks.length}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Completed</div><div class="stat-box-value positive">${totalDone}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Remaining</div><div class="stat-box-value accent">${tasks.length - totalDone}</div></div>
+    `;
+  }
+
+  function addTask() {
+    const label = document.getElementById('newTaskLabel').value.trim();
+    if (!label) return;
+    const group = document.getElementById('newTaskGroup').value;
+    tasks.push({ id: uid(), label, group, done: false });
+    document.getElementById('newTaskLabel').value = '';
+    saveTasks();
+    renderTasks();
+  }
+
+  function toggleTask(id) {
+    const t = tasks.find(x => x.id === id);
+    if (!t) return;
+    t.done = !t.done;
+    saveTasks();
+    renderTasks();
+  }
+
+  function removeTask(id) {
+    tasks = tasks.filter(x => x.id !== id);
+    saveTasks();
+    renderTasks();
+  }
+
+  // ════════════════════════════════════════════════════
+  // SEATING CHART
+  // ════════════════════════════════════════════════════
+  let seatingTables = [];
+
+  async function loadSeating() {
+    try {
+      const r = await window.storage.get('seatingTables');
+      seatingTables = r ? JSON.parse(r.value) : [
+        { id: uid(), name: 'Table 1', seats: [] },
+        { id: uid(), name: 'Table 2', seats: [] },
+      ];
+    } catch (e) {
+      seatingTables = [
+        { id: uid(), name: 'Table 1', seats: [] },
+        { id: uid(), name: 'Table 2', seats: [] },
+      ];
+    }
+    renderSeating();
+  }
+
+  async function saveSeating() {
+    try { await window.storage.set('seatingTables', JSON.stringify(seatingTables)); } catch (e) { console.error(e); }
+  }
+
+  function assignedGuestIds() {
+    const s = new Set();
+    seatingTables.forEach(t => t.seats.forEach(id => s.add(id)));
+    return s;
+  }
+
+  function renderSeatingPool() {
+    const pool = document.getElementById('unassigned-pool');
+    if (!pool) return;
+    const assigned = assignedGuestIds();
+    const unassigned = guests.filter(g => !assigned.has(g.id) && g.rsvp !== 'No');
+    pool.innerHTML = unassigned.map(g => seatChipHtml(g)).join('') || '<span style="font-size:12px; color:var(--muted); font-style:italic;">All guests are seated</span>';
+    attachDragHandlers(pool, null);
+  }
+
+  function seatChipHtml(g) {
+    return `<div class="seat-chip" draggable="true" data-guest-id="${g.id}" ondragstart="onDragStart(event)">${escapeHtml(g.name || 'Unnamed')}</div>`;
+  }
+
+  function renderSeating() {
+    const grid = document.getElementById('tables-grid');
+    grid.innerHTML = '';
+    seatingTables.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'table-card';
+      const seatedGuests = t.seats.map(id => guests.find(g => g.id === id)).filter(Boolean);
+      card.innerHTML = `
+        <div class="table-card-header">
+          <input class="custom-label-input" style="font-family:'Cormorant Garamond',serif; font-size:16px; border:none; background:none; padding:2px;" value="${escapeHtml(t.name)}" onchange="renameTable('${t.id}', this.value)" />
+          <button class="remove-btn" onclick="removeTable('${t.id}')">×</button>
+        </div>
+        <div class="table-card-count">${seatedGuests.length} seated</div>
+        <div class="table-drop-zone" data-table-id="${t.id}" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+          ${seatedGuests.map(g => `<div class="seat-chip" draggable="true" data-guest-id="${g.id}" ondragstart="onDragStart(event)">${escapeHtml(g.name || 'Unnamed')}</div>`).join('')}
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+    renderSeatingPool();
+  }
+
+  function addTable() {
+    seatingTables.push({ id: uid(), name: `Table ${seatingTables.length + 1}`, seats: [] });
+    saveSeating();
+    renderSeating();
+  }
+
+  function removeTable(id) {
+    seatingTables = seatingTables.filter(t => t.id !== id);
+    saveSeating();
+    renderSeating();
+  }
+
+  function renameTable(id, name) {
+    const t = seatingTables.find(x => x.id === id);
+    if (!t) return;
+    t.name = name;
+    saveSeating();
+  }
+
+  // Drag & drop
+  let draggedGuestId = null;
+
+  function onDragStart(e) {
+    draggedGuestId = e.target.dataset.guestId;
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  function onDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('drag-over');
+  }
+
+  function onDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+  }
+
+  function onDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    const tableId = e.currentTarget.dataset.tableId;
+    if (!draggedGuestId) return;
+    seatingTables.forEach(t => { t.seats = t.seats.filter(id => id !== draggedGuestId); });
+    const table = seatingTables.find(t => t.id === tableId);
+    if (table) table.seats.push(draggedGuestId);
+    draggedGuestId = null;
+    saveSeating();
+    renderSeating();
+  }
+
+  function attachDragHandlers(pool) {
+    pool.ondragover = (e) => { e.preventDefault(); pool.classList.add('drag-over'); };
+    pool.ondragleave = () => pool.classList.remove('drag-over');
+    pool.ondrop = (e) => {
+      e.preventDefault();
+      pool.classList.remove('drag-over');
+      if (!draggedGuestId) return;
+      seatingTables.forEach(t => { t.seats = t.seats.filter(id => id !== draggedGuestId); });
+      draggedGuestId = null;
+      saveSeating();
+      renderSeating();
+    };
+  }
+
+  // ── Load all persisted data on startup ──
+  loadGuests();
+  loadVendors();
+  loadTasks();
+  loadSeating();
+
+  // Restore calculator inputs, then render
+  loadCalcState();
+  calc();
+</script>
+</body>
+</html>
