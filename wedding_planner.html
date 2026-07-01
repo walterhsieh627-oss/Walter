@@ -820,16 +820,18 @@
   .remove-btn {
     background: none;
     border: none;
-    color: var(--border);
+    color: var(--muted);
     font-size: 16px;
     cursor: pointer;
-    padding: 2px 4px;
+    padding: 2px 6px;
     line-height: 1;
     transition: color 0.15s;
     flex-shrink: 0;
+    opacity: 0.4;
   }
 
-  .remove-btn:hover { color: var(--negative); }
+  .remove-btn:hover { color: var(--negative); opacity: 1; }
+  .checklist-item:hover .remove-btn { opacity: 1; }
 
   /* addon custom rows need 5 cols */
   .custom-addon-row {
@@ -970,7 +972,7 @@
     <div class="calc-section">
       <div class="calc-section-title">Add a Task</div>
       <div class="custom-input-row" style="border:none;">
-        <input class="custom-label-input" id="newTaskLabel" placeholder="Task description" />
+        <input class="custom-label-input" id="newTaskLabel" placeholder="Task description" onkeydown="if(event.key==='Enter') addTask()" />
         <select class="input-field" id="newTaskGroup" style="width:160px; text-align:left;">
           <option>12+ Months Before</option>
           <option>9–11 Months Before</option>
