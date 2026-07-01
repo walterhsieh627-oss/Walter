@@ -845,6 +845,49 @@
   }
 
   .custom-addon-row:last-of-type { border-bottom: none; }
+
+  /* ── BUDGET / PAYMENT STATUS BADGES ── */
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 10px;
+  }
+  .badge-over    { background: #F9E5E5; color: var(--negative); }
+  .badge-under   { background: #E5F0E5; color: var(--positive); }
+  .badge-ok      { background: var(--parchment); color: var(--muted); }
+  .badge-paid    { background: #E5F0E5; color: var(--positive); }
+  .badge-partial { background: #FEF3E2; color: #9A6B00; }
+  .badge-unpaid  { background: var(--parchment); color: var(--muted); }
+  .badge-overdue { background: #F9E5E5; color: var(--negative); }
+
+  /* ── DAY-OF TIMELINE ── */
+  .dayof-event {
+    display: grid;
+    grid-template-columns: 80px 1fr 140px 32px;
+    gap: 12px;
+    align-items: center;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 12px 16px;
+  }
+  .dayof-event:first-child { border-top: 1px solid var(--border); }
+  .dayof-time {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--gold);
+    white-space: nowrap;
+  }
+  .dayof-label { font-size: 13px; color: var(--ink); }
+  .dayof-who   { font-size: 12px; color: var(--muted); }
+  @media (max-width: 600px) {
+    .dayof-event { grid-template-columns: 70px 1fr 32px; }
+    .dayof-who   { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -859,6 +902,9 @@
     <button class="tab-btn" onclick="showTab('checklist', this)">Timeline</button>
     <button class="tab-btn" onclick="showTab('seating', this)">Seating</button>
     <button class="tab-btn" onclick="showTab('calculator', this)">Cost Calculator</button>
+    <button class="tab-btn" onclick="showTab('budget', this)">Budget</button>
+    <button class="tab-btn" onclick="showTab('payments', this)">Payments</button>
+    <button class="tab-btn" onclick="showTab('dayof', this)">Day-Of</button>
   </nav>
 </header>
 
@@ -1199,6 +1245,87 @@
 
       </div>
     </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       BUDGET TRACKER TAB
+  ═══════════════════════════════════════════════════ -->
+  <div id="tab-budget" class="tab-panel">
+    <h2 class="section-title">Budget Tracker</h2>
+    <p class="section-desc">Track budgeted vs. actual spend across every category</p>
+
+    <div class="stat-strip" id="budget-stats"></div>
+
+    <div class="calc-section" style="margin-top:20px;">
+      <div class="table-wrap">
+        <table class="data-table" id="budget-table">
+          <thead>
+            <tr>
+              <th style="width:22%">Category</th>
+              <th style="width:18%">Budgeted ($)</th>
+              <th style="width:18%">Actual ($)</th>
+              <th style="width:14%">Difference</th>
+              <th style="width:14%">Status</th>
+              <th>Notes</th>
+              <th style="width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="budget-tbody"></tbody>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addBudgetRow()">+ Add Category</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       PAYMENT MILESTONES TAB
+  ═══════════════════════════════════════════════════ -->
+  <div id="tab-payments" class="tab-panel">
+    <h2 class="section-title">Payment Milestones</h2>
+    <p class="section-desc">Track deposits, due dates, and outstanding balances per vendor</p>
+
+    <div class="stat-strip" id="payments-stats"></div>
+
+    <div class="calc-section" style="margin-top:20px;">
+      <div class="table-wrap">
+        <table class="data-table" id="payments-table">
+          <thead>
+            <tr>
+              <th style="width:18%">Vendor</th>
+              <th style="width:14%">Total Owed ($)</th>
+              <th style="width:14%">Paid ($)</th>
+              <th style="width:12%">Balance</th>
+              <th style="width:14%">Due Date</th>
+              <th style="width:12%">Status</th>
+              <th>Notes</th>
+              <th style="width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="payments-tbody"></tbody>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addPayment()">+ Add Payment</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       DAY-OF TIMELINE TAB
+  ═══════════════════════════════════════════════════ -->
+  <div id="tab-dayof" class="tab-panel">
+    <h2 class="section-title">Day-Of Timeline</h2>
+    <p class="section-desc">Hour-by-hour schedule for your wedding day</p>
+
+    <div class="calc-section" style="margin-bottom:20px;">
+      <div class="calc-section-title">Add Event</div>
+      <div class="custom-input-row" style="border:none; flex-wrap:wrap; gap:8px;">
+        <input type="time" class="input-field" id="newEventTime" value="09:00" style="width:110px;" />
+        <input class="custom-label-input" id="newEventLabel" placeholder="Event description (e.g. Bride hair & makeup)" onkeydown="if(event.key==='Enter') addDayEvent()" />
+        <input class="custom-label-input" id="newEventWho" placeholder="Who (e.g. Bride, Groom, All)" style="max-width:180px;" onkeydown="if(event.key==='Enter') addDayEvent()" />
+        <button class="add-row-btn" style="width:auto;margin-top:0;" onclick="addDayEvent()">+ Add</button>
+      </div>
+    </div>
+
+    <div id="dayof-list"></div>
   </div>
 
 </main>
@@ -2343,11 +2470,291 @@
     };
   }
 
+  // ════════════════════════════════════════════════════
+  // BUDGET TRACKER
+  // ════════════════════════════════════════════════════
+  let budgetRows = [];
+
+  async function loadBudget() {
+    try {
+      const r = await window.storage.get('budget');
+      budgetRows = r ? JSON.parse(r.value) : defaultBudget();
+    } catch(e) { budgetRows = defaultBudget(); }
+    renderBudget();
+  }
+
+  function defaultBudget() {
+    const row = (cat, budgeted) => ({ id: uid(), category: cat, budgeted, actual: 0, notes: '' });
+    return [
+      row('Venue', 10000),
+      row('Catering', 20000),
+      row('Photography & Video', 5000),
+      row('Flowers & Décor', 3000),
+      row('Music / DJ', 2000),
+      row('Wedding Dress & Attire', 3000),
+      row('Hair & Makeup', 1500),
+      row('Cake', 800),
+      row('Invitations & Stationery', 500),
+      row('Transportation', 600),
+      row('Officiant', 400),
+      row('Honeymoon', 5000),
+      row('Miscellaneous', 1000),
+    ];
+  }
+
+  async function saveBudget() {
+    try { await window.storage.set('budget', JSON.stringify(budgetRows)); } catch(e) {}
+  }
+
+  function renderBudget() {
+    const tbody = document.getElementById('budget-tbody');
+    tbody.innerHTML = '';
+    let totalBudgeted = 0, totalActual = 0;
+
+    budgetRows.forEach(row => {
+      const diff = row.actual - row.budgeted;
+      const pct  = row.budgeted > 0 ? Math.round((row.actual / row.budgeted) * 100) : 0;
+      let badgeClass, badgeLabel;
+      if (row.budgeted === 0 && row.actual === 0) { badgeClass = 'badge-ok'; badgeLabel = '—'; }
+      else if (diff > 0)  { badgeClass = 'badge-over';  badgeLabel = 'Over'; }
+      else if (diff < 0)  { badgeClass = 'badge-under'; badgeLabel = 'Under'; }
+      else                { badgeClass = 'badge-ok';    badgeLabel = 'On Track'; }
+
+      const diffFmt = diff === 0 ? '—' : (diff > 0 ? '+' : '') + fmt(diff);
+      totalBudgeted += row.budgeted;
+      totalActual   += row.actual;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input class="table-input" value="${escapeHtml(row.category)}" oninput="updateBudget('${row.id}','category',this.value)" placeholder="Category" /></td>
+        <td><input class="table-input" type="number" min="0" step="1" value="${row.budgeted}" oninput="updateBudget('${row.id}','budgeted',+this.value)" /></td>
+        <td><input class="table-input" type="number" min="0" step="1" value="${row.actual}"   oninput="updateBudget('${row.id}','actual',+this.value)" /></td>
+        <td style="font-weight:600; color:${diff>0?'var(--negative)':diff<0?'var(--positive)':'var(--muted)'}">${diffFmt}</td>
+        <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
+        <td><input class="table-input" value="${escapeHtml(row.notes)}" oninput="updateBudget('${row.id}','notes',this.value)" placeholder="—" /></td>
+        <td><button class="remove-btn" onclick="removeBudget('${row.id}')">×</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const totalDiff = totalActual - totalBudgeted;
+    document.getElementById('budget-stats').innerHTML = `
+      <div class="stat-box"><div class="stat-box-label">Total Budgeted</div><div class="stat-box-value accent">${fmt(totalBudgeted)}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Total Spent</div><div class="stat-box-value">${fmt(totalActual)}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Remaining</div><div class="stat-box-value ${totalDiff<=0?'positive':'negative'}">${fmt(totalBudgeted - totalActual)}</div></div>
+      <div class="stat-box"><div class="stat-box-label">% Used</div><div class="stat-box-value">${totalBudgeted>0?Math.round((totalActual/totalBudgeted)*100):0}%</div></div>
+    `;
+  }
+
+  function addBudgetRow() {
+    budgetRows.push({ id: uid(), category: '', budgeted: 0, actual: 0, notes: '' });
+    saveBudget(); renderBudget();
+  }
+
+  function updateBudget(id, field, value) {
+    const r = budgetRows.find(x => x.id === id);
+    if (!r) return;
+    r[field] = value;
+    saveBudget(); renderBudget();
+  }
+
+  function removeBudget(id) {
+    budgetRows = budgetRows.filter(x => x.id !== id);
+    saveBudget(); renderBudget();
+  }
+
+  // ════════════════════════════════════════════════════
+  // PAYMENT MILESTONES
+  // ════════════════════════════════════════════════════
+  let payments = [];
+
+  async function loadPayments() {
+    try {
+      const r = await window.storage.get('payments');
+      payments = r ? JSON.parse(r.value) : defaultPayments();
+    } catch(e) { payments = defaultPayments(); }
+    renderPayments();
+  }
+
+  function defaultPayments() {
+    const p = (vendor, total, paid, due, notes) => ({ id: uid(), vendor, total, paid, due, notes });
+    return [
+      p('Venue – Casa Real', 10000, 2500, '2027-01-15', 'Deposit paid'),
+      p('Photographer', 5000, 1000, '2027-03-01', ''),
+      p('Caterer – Le\'s Catering', 18000, 0, '2027-06-01', ''),
+      p('DJ', 2000, 500, '2027-04-15', 'Deposit paid'),
+    ];
+  }
+
+  async function savePayments() {
+    try { await window.storage.set('payments', JSON.stringify(payments)); } catch(e) {}
+  }
+
+  function paymentStatus(p) {
+    const today = new Date().toISOString().slice(0,10);
+    const balance = p.total - p.paid;
+    if (balance <= 0) return { cls: 'badge-paid', label: 'Paid' };
+    if (p.due && p.due < today && balance > 0) return { cls: 'badge-overdue', label: 'Overdue' };
+    if (p.paid > 0) return { cls: 'badge-partial', label: 'Partial' };
+    return { cls: 'badge-unpaid', label: 'Unpaid' };
+  }
+
+  function renderPayments() {
+    const tbody = document.getElementById('payments-tbody');
+    tbody.innerHTML = '';
+    let totalOwed = 0, totalPaid = 0;
+
+    payments.forEach(p => {
+      const balance = p.total - p.paid;
+      const { cls, label } = paymentStatus(p);
+      totalOwed += p.total;
+      totalPaid += p.paid;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input class="table-input" value="${escapeHtml(p.vendor)}" oninput="updatePayment('${p.id}','vendor',this.value)" placeholder="Vendor name" /></td>
+        <td><input class="table-input" type="number" min="0" step="1" value="${p.total}" oninput="updatePayment('${p.id}','total',+this.value)" /></td>
+        <td><input class="table-input" type="number" min="0" step="1" value="${p.paid}"  oninput="updatePayment('${p.id}','paid',+this.value)" /></td>
+        <td style="font-weight:600; color:${balance>0?'var(--negative)':'var(--positive)'}">${fmt(balance)}</td>
+        <td><input class="table-input" type="date" value="${p.due||''}" oninput="updatePayment('${p.id}','due',this.value)" /></td>
+        <td><span class="badge ${cls}">${label}</span></td>
+        <td><input class="table-input" value="${escapeHtml(p.notes)}" oninput="updatePayment('${p.id}','notes',this.value)" placeholder="—" /></td>
+        <td><button class="remove-btn" onclick="removePayment('${p.id}')">×</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const outstanding = totalOwed - totalPaid;
+    const overdue = payments.filter(p => {
+      const today = new Date().toISOString().slice(0,10);
+      return p.due && p.due < today && (p.total - p.paid) > 0;
+    }).length;
+
+    document.getElementById('payments-stats').innerHTML = `
+      <div class="stat-box"><div class="stat-box-label">Total Owed</div><div class="stat-box-value accent">${fmt(totalOwed)}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Total Paid</div><div class="stat-box-value positive">${fmt(totalPaid)}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Outstanding</div><div class="stat-box-value ${outstanding>0?'negative':'positive'}">${fmt(outstanding)}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Overdue</div><div class="stat-box-value ${overdue>0?'negative':''}">${overdue}</div></div>
+    `;
+  }
+
+  function addPayment() {
+    payments.push({ id: uid(), vendor: '', total: 0, paid: 0, due: '', notes: '' });
+    savePayments(); renderPayments();
+  }
+
+  function updatePayment(id, field, value) {
+    const p = payments.find(x => x.id === id);
+    if (!p) return;
+    p[field] = value;
+    savePayments(); renderPayments();
+  }
+
+  function removePayment(id) {
+    payments = payments.filter(x => x.id !== id);
+    savePayments(); renderPayments();
+  }
+
+  // ════════════════════════════════════════════════════
+  // DAY-OF TIMELINE
+  // ════════════════════════════════════════════════════
+  let dayEvents = [];
+
+  async function loadDayOf() {
+    try {
+      const r = await window.storage.get('dayEvents');
+      dayEvents = r ? JSON.parse(r.value) : defaultDayEvents();
+    } catch(e) { dayEvents = defaultDayEvents(); }
+    renderDayOf();
+  }
+
+  function defaultDayEvents() {
+    const e = (time, label, who) => ({ id: uid(), time, label, who });
+    return [
+      e('08:00', 'Bride — hair & makeup begins', 'Bride + bridesmaids'),
+      e('10:00', 'Groom — get dressed', 'Groom + groomsmen'),
+      e('11:30', 'First look photos', 'Couple'),
+      e('12:00', 'Wedding party photos', 'Wedding party'),
+      e('13:00', 'Guests arrive / cocktail hour', 'All guests'),
+      e('14:00', 'Ceremony begins', 'All'),
+      e('14:45', 'Ceremony ends / recessional', 'All'),
+      e('15:00', 'Cocktail hour', 'All guests'),
+      e('16:00', 'Reception doors open', 'All'),
+      e('16:15', 'Grand entrance', 'Couple + wedding party'),
+      e('16:30', 'First dance', 'Couple'),
+      e('16:45', 'Dinner service begins', 'All'),
+      e('17:30', 'Toasts & speeches', 'Select speakers'),
+      e('18:00', 'Cake cutting', 'Couple'),
+      e('18:30', 'Open dancing', 'All'),
+      e('20:30', 'Last dance', 'All'),
+      e('21:00', 'Send-off / farewell', 'All'),
+    ];
+  }
+
+  async function saveDayOf() {
+    try { await window.storage.set('dayEvents', JSON.stringify(dayEvents)); } catch(e) {}
+  }
+
+  function fmt12(time24) {
+    if (!time24) return '—';
+    const [h, m] = time24.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12  = h % 12 || 12;
+    return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+
+  function renderDayOf() {
+    const list = document.getElementById('dayof-list');
+    const sorted = [...dayEvents].sort((a,b) => a.time.localeCompare(b.time));
+    list.innerHTML = '';
+    if (sorted.length === 0) {
+      list.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:16px 0;">No events yet — add one above.</p>';
+      return;
+    }
+    sorted.forEach(ev => {
+      const div = document.createElement('div');
+      div.className = 'dayof-event';
+      div.innerHTML = `
+        <div class="dayof-time">${fmt12(ev.time)}</div>
+        <input class="table-input" value="${escapeHtml(ev.label)}" oninput="updateDayEvent('${ev.id}','label',this.value)" placeholder="Event description" />
+        <input class="table-input dayof-who" value="${escapeHtml(ev.who)}" oninput="updateDayEvent('${ev.id}','who',this.value)" placeholder="Who" />
+        <button class="remove-btn" onclick="removeDayEvent('${ev.id}')">×</button>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function addDayEvent() {
+    const time  = document.getElementById('newEventTime').value;
+    const label = document.getElementById('newEventLabel').value.trim();
+    const who   = document.getElementById('newEventWho').value.trim();
+    if (!label) return;
+    dayEvents.push({ id: uid(), time, label, who });
+    document.getElementById('newEventLabel').value = '';
+    document.getElementById('newEventWho').value   = '';
+    saveDayOf(); renderDayOf();
+  }
+
+  function updateDayEvent(id, field, value) {
+    const ev = dayEvents.find(x => x.id === id);
+    if (!ev) return;
+    ev[field] = value;
+    saveDayOf();
+  }
+
+  function removeDayEvent(id) {
+    dayEvents = dayEvents.filter(x => x.id !== id);
+    saveDayOf(); renderDayOf();
+  }
+
   // ── Load all persisted data on startup ──
   loadGuests();
   loadVendors();
   loadTasks();
   loadSeating();
+  loadBudget();
+  loadPayments();
+  loadDayOf();
 
   // Restore calculator inputs, then render
   loadCalcState();
