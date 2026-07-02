@@ -888,6 +888,38 @@
     .dayof-event { grid-template-columns: 70px 1fr 32px; }
     .dayof-who   { display: none; }
   }
+
+  /* ── SECTION HEADER ROW ── */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .section-header .section-title { margin-bottom: 0; }
+
+  /* ── EXPORT BUTTON ── */
+  .export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    cursor: pointer;
+    border-radius: 1px;
+    transition: border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  .export-btn:hover { border-color: var(--gold); color: var(--gold); }
 </style>
 </head>
 <body>
@@ -914,7 +946,10 @@
        GUEST LIST & RSVPS TAB
   ═══════════════════════════════════════════════════ -->
   <div id="tab-guests" class="tab-panel active">
-    <h2 class="section-title">Guest List & RSVPs</h2>
+    <div class="section-header">
+      <h2 class="section-title">Guest List & RSVPs</h2>
+      <button class="export-btn" onclick="exportGuests()">⬇ Export CSV</button>
+    </div>
     <p class="section-desc">Track invitees, party size, and response status</p>
 
     <div class="stat-strip" id="guest-stats"></div>
@@ -979,7 +1014,10 @@
        VENDOR CONTACTS TAB
   ═══════════════════════════════════════════════════ -->
   <div id="tab-vendors" class="tab-panel">
-    <h2 class="section-title">Vendor Contacts</h2>
+    <div class="section-header">
+      <h2 class="section-title">Vendor Contacts</h2>
+      <button class="export-btn" onclick="exportVendors()">⬇ Export CSV</button>
+    </div>
     <p class="section-desc">Every vendor, their contact info, and contract status</p>
 
     <div class="calc-section">
@@ -1008,7 +1046,10 @@
        TIMELINE / CHECKLIST TAB
   ═══════════════════════════════════════════════════ -->
   <div id="tab-checklist" class="tab-panel">
-    <h2 class="section-title">Wedding Planning Timeline</h2>
+    <div class="section-header">
+      <h2 class="section-title">Wedding Planning Timeline</h2>
+      <button class="export-btn" onclick="exportTasks()">⬇ Export CSV</button>
+    </div>
     <p class="section-desc">Tasks organized by how far out they typically happen</p>
 
     <div class="stat-strip" id="checklist-stats"></div>
@@ -1036,7 +1077,10 @@
        SEATING CHART TAB
   ═══════════════════════════════════════════════════ -->
   <div id="tab-seating" class="tab-panel">
-    <h2 class="section-title">Seating Chart</h2>
+    <div class="section-header">
+      <h2 class="section-title">Seating Chart</h2>
+      <button class="export-btn" onclick="exportSeating()">⬇ Export CSV</button>
+    </div>
     <p class="section-desc">Organize guests into tables · drag names between tables</p>
 
     <div class="calc-section" style="margin-bottom:20px;">
@@ -1053,8 +1097,10 @@
        COST CALCULATOR TAB
   ═══════════════════════════════════════════════════ -->
   <div id="tab-calculator" class="tab-panel">
-
-    <h2 class="section-title">Event Quote Calculator</h2>
+    <div class="section-header">
+      <h2 class="section-title">Event Quote Calculator</h2>
+      <button class="export-btn" onclick="exportCalculator()">⬇ Export CSV</button>
+    </div>
     <p class="section-desc">Casa Real at Ruby Hill Winery · Quote No. EQ50865 · 2027 Peak Season</p>
 
     <div class="calc-layout">
@@ -1251,7 +1297,10 @@
        BUDGET TRACKER TAB
   ═══════════════════════════════════════════════════ -->
   <div id="tab-budget" class="tab-panel">
-    <h2 class="section-title">Budget Tracker</h2>
+    <div class="section-header">
+      <h2 class="section-title">Budget Tracker</h2>
+      <button class="export-btn" onclick="exportBudget()">⬇ Export CSV</button>
+    </div>
     <p class="section-desc">Track budgeted vs. actual spend across every category</p>
 
     <div class="stat-strip" id="budget-stats"></div>
@@ -1281,7 +1330,10 @@
        PAYMENT MILESTONES TAB
   ═══════════════════════════════════════════════════ -->
   <div id="tab-payments" class="tab-panel">
-    <h2 class="section-title">Payment Milestones</h2>
+    <div class="section-header">
+      <h2 class="section-title">Payment Milestones</h2>
+      <button class="export-btn" onclick="exportPayments()">⬇ Export CSV</button>
+    </div>
     <p class="section-desc">Track deposits, due dates, and outstanding balances per vendor</p>
 
     <div class="stat-strip" id="payments-stats"></div>
@@ -1312,7 +1364,10 @@
        DAY-OF TIMELINE TAB
   ═══════════════════════════════════════════════════ -->
   <div id="tab-dayof" class="tab-panel">
-    <h2 class="section-title">Day-Of Timeline</h2>
+    <div class="section-header">
+      <h2 class="section-title">Day-Of Timeline</h2>
+      <button class="export-btn" onclick="exportDayOf()">⬇ Export CSV</button>
+    </div>
     <p class="section-desc">Hour-by-hour schedule for your wedding day</p>
 
     <div class="calc-section" style="margin-bottom:20px;">
@@ -2745,6 +2800,104 @@
   function removeDayEvent(id) {
     dayEvents = dayEvents.filter(x => x.id !== id);
     saveDayOf(); renderDayOf();
+  }
+
+  // ════════════════════════════════════════════════════
+  // CSV EXPORT
+  // ════════════════════════════════════════════════════
+  function csvCell(val) {
+    const s = String(val == null ? '' : val);
+    return s.includes(',') || s.includes('"') || s.includes('\n')
+      ? '"' + s.replace(/"/g, '""') + '"'
+      : s;
+  }
+
+  function downloadCSV(filename, rows) {
+    const content = rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportGuests() {
+    const rows = [['Name','Group','Party Size','RSVP','Meal Choice','Notes']];
+    guests.forEach(g => rows.push([g.name, g.group, g.party, g.rsvp, g.meal, g.notes]));
+    downloadCSV('guest-list.csv', rows);
+  }
+
+  function exportVendors() {
+    const rows = [['Category','Company','Contact Name','Phone','Email','Status','Notes']];
+    vendors.forEach(v => rows.push([v.category, v.company, v.contact, v.phone, v.email, v.status, v.notes]));
+    downloadCSV('vendors.csv', rows);
+  }
+
+  function exportTasks() {
+    const rows = [['Group','Task','Done']];
+    TASK_GROUPS.forEach(group => {
+      tasks.filter(t => t.group === group).forEach(t => rows.push([group, t.label, t.done ? 'Yes' : 'No']));
+    });
+    downloadCSV('timeline.csv', rows);
+  }
+
+  function exportSeating() {
+    const rows = [['Table','Guest Name']];
+    const guestMap = {};
+    guests.forEach(g => { guestMap[g.id] = g.name; });
+    const unassigned = guests.map(g => g.id).filter(id => !seatingTables.some(t => t.seats.includes(id)));
+    unassigned.forEach(id => rows.push(['Unassigned', guestMap[id] || id]));
+    seatingTables.forEach(t => {
+      if (t.seats.length === 0) rows.push([t.name, '(empty)']);
+      else t.seats.forEach(id => rows.push([t.name, guestMap[id] || id]));
+    });
+    downloadCSV('seating-chart.csv', rows);
+  }
+
+  function exportCalculator() {
+    const rows = [['Line Item', 'Amount']];
+    [
+      ['Adult Meals',      document.getElementById('s-adult').textContent],
+      ['Teen Meals',       document.getElementById('s-teen').textContent],
+      ['Child Meals',      document.getElementById('s-child').textContent],
+      ['Vendor Meals',     document.getElementById('s-vendor').textContent],
+      ['Tea Ceremony',     document.getElementById('s-tea').textContent],
+      ['Ceremony Fee',     document.getElementById('s-ceremony').textContent],
+      ['Coordination',     document.getElementById('s-coord').textContent],
+      ['Outside Vendors',  document.getElementById('s-outside').textContent],
+      ['Add-Ons',          document.getElementById('s-addons').textContent],
+      ['F&B Total',        document.getElementById('s-fnb').textContent],
+      ['Operations Fee',   document.getElementById('s-ops').textContent],
+      ['Non-F&B Total',    document.getElementById('s-nonfnb').textContent],
+      ['Taxable Charges',  document.getElementById('s-taxable').textContent],
+      ['Tax',              document.getElementById('s-tax').textContent],
+      ['Facility Rental',  document.getElementById('s-facility').textContent],
+      ['Deposits/Credits', document.getElementById('s-dep').textContent],
+      ['Balance Due',      document.getElementById('s-total').textContent],
+    ].forEach(r => rows.push(r));
+    downloadCSV('cost-calculator.csv', rows);
+  }
+
+  function exportBudget() {
+    const rows = [['Category','Budgeted','Actual','Difference','Notes']];
+    budgetRows.forEach(r => rows.push([r.category, r.budgeted, r.actual, r.actual - r.budgeted, r.notes]));
+    downloadCSV('budget.csv', rows);
+  }
+
+  function exportPayments() {
+    const rows = [['Vendor','Total Owed','Paid','Balance','Due Date','Status','Notes']];
+    payments.forEach(p => {
+      const { label } = paymentStatus(p);
+      rows.push([p.vendor, p.total, p.paid, p.total - p.paid, p.due, label, p.notes]);
+    });
+    downloadCSV('payments.csv', rows);
+  }
+
+  function exportDayOf() {
+    const rows = [['Time','Event','Who']];
+    [...dayEvents].sort((a,b) => a.time.localeCompare(b.time))
+      .forEach(e => rows.push([fmt12(e.time), e.label, e.who]));
+    downloadCSV('day-of-timeline.csv', rows);
   }
 
   // ── Load all persisted data on startup ──
