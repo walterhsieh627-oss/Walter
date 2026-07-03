@@ -170,6 +170,20 @@
     font-size: 13px;
     min-width: 240px;
   }
+
+  .card-name[data-img] { cursor: help; border-bottom: 1px dotted var(--text-dim); }
+  #cardPreview {
+    position: fixed;
+    z-index: 999;
+    display: none;
+    pointer-events: none;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.55);
+  }
+  #cardPreview img { display: block; width: 200px; height: auto; border-radius: 6px; }
 </style>
 
 <header>
@@ -301,6 +315,8 @@
   </section>
 </main>
 
+<div id="cardPreview"><img alt="" id="cardPreviewImg"></div>
+
 <script>
   var state = {
     singles: null, sealed: null,
@@ -326,6 +342,12 @@
 
   function eraLabel(key) { return ERA_LABEL[key] || 'Unspecified'; }
 
+  // Singles carry an .image (from pokemontcg.io); sealed products don't, so
+  // data-img is simply empty for them and the hover preview never triggers.
+  function nameCell(r) {
+    return '<span class="card-name" data-img="' + esc(r.image || '') + '">' + esc(r.name) + '</span>';
+  }
+
   function renderTopTable(rows, kind) {
     if (!rows || !rows.length) return '<div class="empty">No cards in this era yet.</div>';
     var isSingles = kind === 'singles';
@@ -334,8 +356,8 @@
       : '<tr><th>#</th><th>Name</th><th>Category</th><th>Set</th><th>Era</th><th class="num">Market</th></tr>';
     var body = rows.map(function (r, i) {
       return isSingles
-        ? '<tr><td class="muted">' + (i + 1) + '</td><td class="name">' + esc(r.name) + '</td><td class="muted">' + esc(r.set) + '</td><td class="muted">' + esc(eraLabel(r.era)) + '</td><td class="muted">' + esc(r.rarity) + '</td><td class="num">' + fmtMoney(r.market) + '</td></tr>'
-        : '<tr><td class="muted">' + (i + 1) + '</td><td class="name">' + esc(r.name) + '</td><td class="muted">' + esc(r.category || '') + '</td><td class="muted">' + esc(r.set || '') + '</td><td class="muted">' + esc(eraLabel(r.era)) + '</td><td class="num">' + fmtMoney(r.market) + '</td></tr>';
+        ? '<tr><td class="muted">' + (i + 1) + '</td><td class="name">' + nameCell(r) + '</td><td class="muted">' + esc(r.set) + '</td><td class="muted">' + esc(eraLabel(r.era)) + '</td><td class="muted">' + esc(r.rarity) + '</td><td class="num">' + fmtMoney(r.market) + '</td></tr>'
+        : '<tr><td class="muted">' + (i + 1) + '</td><td class="name">' + nameCell(r) + '</td><td class="muted">' + esc(r.category || '') + '</td><td class="muted">' + esc(r.set || '') + '</td><td class="muted">' + esc(eraLabel(r.era)) + '</td><td class="num">' + fmtMoney(r.market) + '</td></tr>';
     }).join('');
     return '<table>' + head + body + '</table>';
   }
@@ -344,7 +366,7 @@
     if (!rows || !rows.length) return '<div class="empty">Not enough history yet — refresh again later.</div>';
     var head = '<tr><th>Name</th><th class="num">Prev</th><th class="num">Now</th><th class="num">Change</th></tr>';
     var body = rows.map(function (r) {
-      return '<tr><td class="name">' + esc(r.name) + '</td><td class="num muted">' + fmtMoney(r.prevMarket) +
+      return '<tr><td class="name">' + nameCell(r) + '</td><td class="num muted">' + fmtMoney(r.prevMarket) +
         '</td><td class="num">' + fmtMoney(r.market) + '</td><td class="num ' + pctClass(r.pctChange) + '">' + fmtPct(r.pctChange) + '</td></tr>';
     }).join('');
     return '<table>' + head + body + '</table>';
@@ -354,7 +376,7 @@
     if (!rows || !rows.length) return '<div class="empty">None found at current thresholds.</div>';
     var head = '<tr><th>Name</th><th class="muted">Rarity</th><th class="num">Low</th><th class="num">Market</th><th class="num">Spread</th></tr>';
     var body = rows.map(function (r) {
-      return '<tr><td class="name">' + esc(r.name) + '</td><td class="muted">' + esc(r.rarity) + '</td><td class="num muted">' +
+      return '<tr><td class="name">' + nameCell(r) + '</td><td class="muted">' + esc(r.rarity) + '</td><td class="num muted">' +
         fmtMoney(r.low) + '</td><td class="num">' + fmtMoney(r.market) + '</td><td class="num">+' + r.spreadPct.toFixed(1) + '%</td></tr>';
     }).join('');
     return '<table>' + head + body + '</table>';
@@ -518,6 +540,43 @@
       if (isSealed) renderSealed(); else renderSingles();
     });
   });
+
+  // Card image hover preview. Tables are re-rendered via innerHTML, so this
+  // uses event delegation on document rather than per-row listeners.
+  (function () {
+    var preview = document.getElementById('cardPreview');
+    var previewImg = document.getElementById('cardPreviewImg');
+    var margin = 16;
+
+    document.addEventListener('mouseover', function (e) {
+      var target = e.target.closest && e.target.closest('.card-name');
+      if (!target || !target.dataset.img) return;
+      if (previewImg.src !== target.dataset.img) previewImg.src = target.dataset.img;
+      preview.style.display = 'block';
+      positionPreview(e);
+    });
+
+    document.addEventListener('mousemove', function (e) {
+      if (preview.style.display === 'block') positionPreview(e);
+    });
+
+    document.addEventListener('mouseout', function (e) {
+      var target = e.target.closest && e.target.closest('.card-name');
+      if (target) preview.style.display = 'none';
+    });
+
+    function positionPreview(e) {
+      var w = preview.offsetWidth || 212;
+      var h = preview.offsetHeight || 296;
+      var x = e.clientX + margin;
+      var y = e.clientY + margin;
+      if (x + w > window.innerWidth) x = e.clientX - margin - w;
+      if (y + h > window.innerHeight) y = window.innerHeight - h - margin;
+      if (y < margin) y = margin;
+      preview.style.left = x + 'px';
+      preview.style.top = y + 'px';
+    }
+  })();
 
   loadStatus();
   loadDashboard();

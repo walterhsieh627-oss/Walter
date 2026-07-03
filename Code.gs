@@ -108,7 +108,7 @@ function ensureSheets_(ss) {
   // — see ensureSheetWithHeaders_ — without shifting any existing columns
   // (e.g. an already-entered "Market Price" in SealedProducts).
   ensureSheetWithHeaders_(ss, 'SinglesHistory',
-    ['Timestamp', 'CardID', 'Name', 'Set', 'Rarity', 'Finish', 'Market', 'Low', 'Era']);
+    ['Timestamp', 'CardID', 'Name', 'Set', 'Rarity', 'Finish', 'Market', 'Low', 'Era', 'Image']);
   ensureSheetWithHeaders_(ss, 'SealedHistory',
     ['Timestamp', 'Name', 'Category', 'Set', 'Market', 'Era']);
   var sealedCfg = ensureSheetWithHeaders_(ss, 'SealedProducts',
@@ -212,6 +212,7 @@ function extractPriceInfo_(card) {
   });
   if (!best) return null;
   var releaseYear = parseYear_(card.set && card.set.releaseDate);
+  var images = card.images || {};
   return {
     id: card.id,
     name: card.name,
@@ -220,7 +221,8 @@ function extractPriceInfo_(card) {
     finish: best.finish,
     market: best.market,
     low: best.low,
-    era: getEraForYear_(releaseYear)
+    era: getEraForYear_(releaseYear),
+    image: images.large || images.small || ''
   };
 }
 
@@ -236,7 +238,7 @@ function refreshSingles_() {
   var timestamp = Date.now(); // numeric epoch ms — sorts correctly, unlike Sheets' auto date-parsing of ISO strings
   if (parsed.length) {
     var rows = parsed.map(function (c) {
-      return [timestamp, c.id, c.name, c.set, c.rarity, c.finish, c.market, c.low || '', c.era];
+      return [timestamp, c.id, c.name, c.set, c.rarity, c.finish, c.market, c.low || '', c.era, c.image || ''];
     });
     sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
   }
@@ -336,7 +338,7 @@ function getSinglesDashboard_() {
   var cards = snap.latestRows.map(function (r) {
     return {
       id: r[1], name: r[2], set: r[3], rarity: r[4], finish: r[5],
-      market: r[6], low: r[7] || null, era: r[8] || 'unknown'
+      market: r[6], low: r[7] || null, era: r[8] || 'unknown', image: r[9] || ''
     };
   });
 

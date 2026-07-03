@@ -8,6 +8,8 @@ A browser-based dashboard for tracking Pokémon TCG market trends:
 - **Sealed products** (booster boxes, ETBs, etc.) — entered by hand into a Google Sheet, then tracked the same way
   (rankings + movers) once you've logged a couple of price snapshots.
 - Both are filterable by **era** — Vintage, Mid-Era, Modern, or Ultra-Modern (see below).
+- Hover over any single card's name to see its card image (pulled from pokemontcg.io, which hosts images for this
+  purpose). Sealed products don't have card images, so there's no hover preview for those.
 
 ## Eras
 
