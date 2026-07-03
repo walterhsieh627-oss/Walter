@@ -206,7 +206,14 @@
 
     <div class="card">
       <h2>Top Cards by Market Price</h2>
-      <div class="rank-nav">
+      <div class="rank-nav era-nav">
+        <button data-era="all" class="active">All Eras</button>
+        <button data-era="vintage">Vintage</button>
+        <button data-era="mid">Mid-Era</button>
+        <button data-era="modern">Modern</button>
+        <button data-era="ultra">Ultra-Modern</button>
+      </div>
+      <div class="rank-nav topn-nav">
         <button data-n="10" class="active">Top 10</button>
         <button data-n="25">Top 25</button>
         <button data-n="50">Top 50</button>
@@ -237,13 +244,20 @@
       TCGplayer has no public API for sealed product pricing and blocks automated requests to its site, so this
       can't be pulled automatically. Instead, add the products you want to track in the
       <strong>SealedProducts</strong> tab of your <a id="sheetLink2" href="#" target="_blank" rel="noopener">data sheet</a>,
-      fill in the current TCGplayer market price yourself, then hit Refresh Now — each refresh snapshots whatever's
-      in that sheet so trends build up over time.
+      fill in the current TCGplayer market price yourself (and pick an Era from the dropdown in that column), then
+      hit Refresh Now — each refresh snapshots whatever's in that sheet so trends build up over time.
     </div>
 
     <div class="card">
       <h2>Top Sealed Products by Market Price</h2>
-      <div class="rank-nav">
+      <div class="rank-nav era-nav">
+        <button data-era="all" class="active">All Eras</button>
+        <button data-era="vintage">Vintage</button>
+        <button data-era="mid">Mid-Era</button>
+        <button data-era="modern">Modern</button>
+        <button data-era="ultra">Ultra-Modern</button>
+      </div>
+      <div class="rank-nav topn-nav">
         <button data-n="10" class="active">Top 10</button>
         <button data-n="25">Top 25</button>
         <button data-n="50">Top 50</button>
@@ -288,7 +302,12 @@
 </main>
 
 <script>
-  var state = { singles: null, sealed: null, topN: { singles: 10, sealed: 10 } };
+  var state = {
+    singles: null, sealed: null,
+    topN: { singles: 10, sealed: 10 },
+    era: { singles: 'all', sealed: 'all' }
+  };
+  var ERA_LABEL = { vintage: 'Vintage', mid: 'Mid-Era', modern: 'Modern', ultra: 'Ultra-Modern', unknown: 'Unspecified' };
 
   function fmtMoney(n) {
     if (n === null || n === undefined || n === '') return '—';
@@ -305,16 +324,18 @@
     return d.toLocaleString();
   }
 
+  function eraLabel(key) { return ERA_LABEL[key] || 'Unspecified'; }
+
   function renderTopTable(rows, kind) {
-    if (!rows || !rows.length) return '<div class="empty">No data yet.</div>';
+    if (!rows || !rows.length) return '<div class="empty">No cards in this era yet.</div>';
     var isSingles = kind === 'singles';
     var head = isSingles
-      ? '<tr><th>#</th><th>Name</th><th>Set</th><th>Rarity</th><th class="num">Market</th></tr>'
-      : '<tr><th>#</th><th>Name</th><th>Category</th><th>Set</th><th class="num">Market</th></tr>';
+      ? '<tr><th>#</th><th>Name</th><th>Set</th><th>Era</th><th>Rarity</th><th class="num">Market</th></tr>'
+      : '<tr><th>#</th><th>Name</th><th>Category</th><th>Set</th><th>Era</th><th class="num">Market</th></tr>';
     var body = rows.map(function (r, i) {
       return isSingles
-        ? '<tr><td class="muted">' + (i + 1) + '</td><td class="name">' + esc(r.name) + '</td><td class="muted">' + esc(r.set) + '</td><td class="muted">' + esc(r.rarity) + '</td><td class="num">' + fmtMoney(r.market) + '</td></tr>'
-        : '<tr><td class="muted">' + (i + 1) + '</td><td class="name">' + esc(r.name) + '</td><td class="muted">' + esc(r.category || '') + '</td><td class="muted">' + esc(r.set || '') + '</td><td class="num">' + fmtMoney(r.market) + '</td></tr>';
+        ? '<tr><td class="muted">' + (i + 1) + '</td><td class="name">' + esc(r.name) + '</td><td class="muted">' + esc(r.set) + '</td><td class="muted">' + esc(eraLabel(r.era)) + '</td><td class="muted">' + esc(r.rarity) + '</td><td class="num">' + fmtMoney(r.market) + '</td></tr>'
+        : '<tr><td class="muted">' + (i + 1) + '</td><td class="name">' + esc(r.name) + '</td><td class="muted">' + esc(r.category || '') + '</td><td class="muted">' + esc(r.set || '') + '</td><td class="muted">' + esc(eraLabel(r.era)) + '</td><td class="num">' + fmtMoney(r.market) + '</td></tr>';
     }).join('');
     return '<table>' + head + body + '</table>';
   }
@@ -345,13 +366,26 @@
     });
   }
 
+  function byMarketDesc(a, b) { return b.market - a.market; }
+  function hasChange(r) { return r.pctChange !== null && r.pctChange !== undefined; }
+
   function renderSingles() {
     var d = state.singles;
     if (!d || !d.hasData) return;
-    document.getElementById('singlesTopWrap').innerHTML = renderTopTable(d.top.slice(0, state.topN.singles), 'singles');
-    document.getElementById('singlesGainersWrap').innerHTML = renderMoversTable(d.gainers);
-    document.getElementById('singlesDeclinersWrap').innerHTML = renderMoversTable(d.decliners);
-    document.getElementById('singlesUndervaluedWrap').innerHTML = renderUndervaluedTable(d.undervalued);
+    var era = state.era.singles;
+    var filtered = era === 'all' ? d.cards : d.cards.filter(function (c) { return c.era === era; });
+
+    document.getElementById('singlesTopWrap').innerHTML =
+      renderTopTable(filtered.slice().sort(byMarketDesc).slice(0, state.topN.singles), 'singles');
+
+    var withChange = filtered.filter(hasChange);
+    var gainers = withChange.slice().sort(function (a, b) { return b.pctChange - a.pctChange; }).slice(0, 15);
+    var decliners = withChange.slice().sort(function (a, b) { return a.pctChange - b.pctChange; }).slice(0, 15);
+    document.getElementById('singlesGainersWrap').innerHTML = renderMoversTable(gainers);
+    document.getElementById('singlesDeclinersWrap').innerHTML = renderMoversTable(decliners);
+
+    var undervalued = era === 'all' ? d.undervalued : d.undervalued.filter(function (c) { return c.era === era; });
+    document.getElementById('singlesUndervaluedWrap').innerHTML = renderUndervaluedTable(undervalued.slice(0, 15));
   }
 
   function renderSealed() {
@@ -365,9 +399,17 @@
       document.getElementById('sealedDeclinersWrap').innerHTML = '<div class="empty">No data yet.</div>';
       return;
     }
-    document.getElementById('sealedTopWrap').innerHTML = renderTopTable(d.top.slice(0, state.topN.sealed), 'sealed');
-    document.getElementById('sealedGainersWrap').innerHTML = renderMoversTable(d.gainers);
-    document.getElementById('sealedDeclinersWrap').innerHTML = renderMoversTable(d.decliners);
+    var era = state.era.sealed;
+    var filtered = era === 'all' ? d.products : d.products.filter(function (p) { return p.era === era; });
+
+    document.getElementById('sealedTopWrap').innerHTML =
+      renderTopTable(filtered.slice().sort(byMarketDesc).slice(0, state.topN.sealed), 'sealed');
+
+    var withChange = filtered.filter(hasChange);
+    var gainers = withChange.slice().sort(function (a, b) { return b.pctChange - a.pctChange; }).slice(0, 15);
+    var decliners = withChange.slice().sort(function (a, b) { return a.pctChange - b.pctChange; }).slice(0, 15);
+    document.getElementById('sealedGainersWrap').innerHTML = renderMoversTable(gainers);
+    document.getElementById('sealedDeclinersWrap').innerHTML = renderMoversTable(decliners);
   }
 
   function setStatus(text, ok) {
@@ -450,13 +492,27 @@
   });
 
   // Top-N nav (scoped per card via closest section)
-  document.querySelectorAll('.rank-nav').forEach(function (nav) {
+  document.querySelectorAll('.topn-nav').forEach(function (nav) {
     nav.addEventListener('click', function (e) {
       if (e.target.tagName !== 'BUTTON') return;
       var n = Number(e.target.dataset.n);
       var isSealed = nav.closest('#panelSealed') !== null;
       var kind = isSealed ? 'sealed' : 'singles';
       state.topN[kind] = n;
+      Array.prototype.forEach.call(nav.querySelectorAll('button'), function (b) { b.classList.remove('active'); });
+      e.target.classList.add('active');
+      if (isSealed) renderSealed(); else renderSingles();
+    });
+  });
+
+  // Era nav (scoped per card via closest section)
+  document.querySelectorAll('.era-nav').forEach(function (nav) {
+    nav.addEventListener('click', function (e) {
+      if (e.target.tagName !== 'BUTTON') return;
+      var era = e.target.dataset.era;
+      var isSealed = nav.closest('#panelSealed') !== null;
+      var kind = isSealed ? 'sealed' : 'singles';
+      state.era[kind] = era;
       Array.prototype.forEach.call(nav.querySelectorAll('button'), function (b) { b.classList.remove('active'); });
       e.target.classList.add('active');
       if (isSealed) renderSealed(); else renderSingles();

@@ -7,6 +7,24 @@ A browser-based dashboard for tracking Pokémon TCG market trends:
   "potentially undervalued" heuristic.
 - **Sealed products** (booster boxes, ETBs, etc.) — entered by hand into a Google Sheet, then tracked the same way
   (rankings + movers) once you've logged a couple of price snapshots.
+- Both are filterable by **era** — Vintage, Mid-Era, Modern, or Ultra-Modern (see below).
+
+## Eras
+
+Every card and sealed product is classified into one of four eras:
+
+| Era | Years | Roughly |
+|---|---|---|
+| Vintage | 1999–2003 | WotC era, Base Set through Skyridge, plus the first "ex" sets |
+| Mid-Era | 2004–2010 | EX series onward, Diamond & Pearl, HeartGold SoulSilver |
+| Modern | 2011–2019 | Black & White through the end of Sun & Moon |
+| Ultra-Modern | 2020–present | Sword & Shield through Scarlet & Violet |
+
+For singles, the era is derived automatically from each card's set release date (from pokemontcg.io) — no setup
+needed. For sealed products, since there's no set release date attached to a manually-typed product, pick the era
+yourself from the dropdown in the `SealedProducts` sheet's "Era" column. The era filter buttons above each Top
+table (All Eras / Vintage / Mid-Era / Modern / Ultra-Modern) apply instantly and also scope the movers/undervalued
+tables below.
 
 ## Why sealed products are manual
 
@@ -25,11 +43,12 @@ three tabs:
 |---|---|
 | `SinglesHistory` | Timestamped snapshots of top-priced singles, appended on every refresh |
 | `SealedHistory` | Timestamped snapshots of sealed product prices, appended on every refresh |
-| `SealedProducts` | **Edit this one.** List the sealed products you want to track and fill in their current TCGplayer market price |
+| `SealedProducts` | **Edit this one.** List the sealed products you want to track, pick an Era, and fill in their current TCGplayer market price |
 
 The `SealedProducts` tab comes pre-seeded with a few example rows — add, remove, or rename rows freely; there's no
 fixed catalog, since it can't be auto-discovered (see above). Leave "Market Price" blank for a product you haven't
-priced yet — it's simply skipped until you fill it in.
+priced yet — it's simply skipped until you fill it in. The "Era" column has a dropdown (data validation) with the
+four era labels from the table above.
 
 ## First-time setup
 

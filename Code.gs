@@ -3,14 +3,15 @@
  *
  * SINGLES: automatically pulled from pokemontcg.io (a free public API that
  * mirrors TCGplayer market price data). Ranked into Top 10/25/50, tracked for
- * day-over-day movers, and scanned for a simple "undervalued" heuristic.
+ * day-over-day movers, scanned for a simple "undervalued" heuristic, and
+ * classified into eras by each card's set release date (see ERAS below).
  *
  * SEALED PRODUCTS: TCGplayer has no public API for this, and blocks
  * automated/bot requests to its site (confirmed 403 on a plain fetch), so
- * scraping it isn't viable. Instead, sealed product prices are entered by
- * hand into the "SealedProducts" tab of the generated Google Sheet; each
- * refresh snapshots whatever is currently in that sheet, which is enough to
- * build the same ranking/movers views over time.
+ * scraping it isn't viable. Instead, sealed product prices (and their era)
+ * are entered by hand into the "SealedProducts" tab of the generated Google
+ * Sheet; each refresh snapshots whatever is currently in that sheet, which is
+ * enough to build the same ranking/movers views over time.
  *
  * All data lives in a Google Sheet (auto-created on first run) — see
  * getSpreadsheet_(). Script Properties hold the optional pokemontcg.io API
@@ -33,6 +34,46 @@ var CONFIG = {
 };
 
 var SHEET_NAME = 'Pokemon TCG Market Tracker Data';
+
+// Card era, by set release year. Boundary years are assigned to a single era
+// (no overlap) so every card lands in exactly one bucket:
+//   Vintage    — WotC era, Base Set through Skyridge, plus the very first
+//                "ex" sets (all released by end of 2003)
+//   Mid-Era    — EX series onward, Diamond & Pearl, HeartGold SoulSilver
+//   Modern     — Black & White through the end of Sun & Moon
+//   Ultra-Modern — Sword & Shield through Scarlet & Violet
+var ERA_LABELS = {
+  vintage: 'Vintage (1999–2003)',
+  mid: 'Mid-Era (2004–2010)',
+  modern: 'Modern (2011–2019)',
+  ultra: 'Ultra-Modern (2020–Present)'
+};
+var ERA_ORDER = ['vintage', 'mid', 'modern', 'ultra'];
+
+function getEraForYear_(year) {
+  if (!year) return 'unknown';
+  if (year <= 2003) return 'vintage';
+  if (year <= 2010) return 'mid';
+  if (year <= 2019) return 'modern';
+  return 'ultra';
+}
+
+function parseYear_(dateStr) {
+  if (!dateStr) return null;
+  var m = String(dateStr).match(/(\d{4})/);
+  return m ? Number(m[1]) : null;
+}
+
+// Normalizes free-typed / dropdown-selected era text (e.g. "Vintage",
+// "Vintage (1999–2003)") into one of the era keys above.
+function normalizeEraLabel_(label) {
+  var l = String(label || '').toLowerCase();
+  if (l.indexOf('ultra') !== -1) return 'ultra'; // check before "modern" — "ultra-modern" contains "modern"
+  if (l.indexOf('vintage') !== -1) return 'vintage';
+  if (l.indexOf('mid') !== -1) return 'mid';
+  if (l.indexOf('modern') !== -1) return 'modern';
+  return 'unknown';
+}
 
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('index')
@@ -62,15 +103,21 @@ function getSpreadsheet_() {
 }
 
 function ensureSheets_(ss) {
+  // Era is appended as the LAST column in every schema below (never inserted
+  // in the middle) so that sheets created before eras existed migrate safely
+  // — see ensureSheetWithHeaders_ — without shifting any existing columns
+  // (e.g. an already-entered "Market Price" in SealedProducts).
   ensureSheetWithHeaders_(ss, 'SinglesHistory',
-    ['Timestamp', 'CardID', 'Name', 'Set', 'Rarity', 'Finish', 'Market', 'Low']);
+    ['Timestamp', 'CardID', 'Name', 'Set', 'Rarity', 'Finish', 'Market', 'Low', 'Era']);
   ensureSheetWithHeaders_(ss, 'SealedHistory',
-    ['Timestamp', 'Name', 'Category', 'Set', 'Market']);
+    ['Timestamp', 'Name', 'Category', 'Set', 'Market', 'Era']);
   var sealedCfg = ensureSheetWithHeaders_(ss, 'SealedProducts',
-    ['Name', 'Category', 'Set', 'Market Price', 'Notes']);
+    ['Name', 'Category', 'Set', 'Market Price', 'Notes', 'Era']);
   if (sealedCfg.getLastRow() < 2) {
     seedSealedProducts_(sealedCfg);
   }
+  applyEraDropdown_(sealedCfg, 6); // Era is column F
+
   var def = ss.getSheetByName('Sheet1');
   if (def && ss.getSheets().length > 1) {
     try { ss.deleteSheet(def); } catch (e) { /* ignore */ }
@@ -85,8 +132,25 @@ function ensureSheetWithHeaders_(ss, name, headers) {
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(headers);
     sheet.setFrozenRows(1);
+    return sheet;
+  }
+  // Migration: a sheet from before this column existed just gets it appended
+  // at the end — existing columns/data are never shifted or touched.
+  var existingCount = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].length;
+  if (existingCount < headers.length) {
+    var missing = headers.slice(existingCount);
+    sheet.getRange(1, existingCount + 1, 1, missing.length).setValues([missing]);
   }
   return sheet;
+}
+
+function applyEraDropdown_(sheet, col) {
+  var labels = ERA_ORDER.map(function (k) { return ERA_LABELS[k]; });
+  var rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(labels, true)
+    .setAllowInvalid(true)
+    .build();
+  sheet.getRange(2, col, 500, 1).setDataValidation(rule);
 }
 
 function seedSealedProducts_(sheet) {
@@ -95,10 +159,10 @@ function seedSealedProducts_(sheet) {
   // remove, or rename rows, and fill in "Market Price" from TCGplayer
   // yourself whenever you want a fresh reading.
   var starter = [
-    ['Scarlet & Violet: 151 Booster Box', 'Booster Box', 'Scarlet & Violet: 151', '', 'Example row — edit freely'],
-    ['Scarlet & Violet: 151 Elite Trainer Box', 'Elite Trainer Box', 'Scarlet & Violet: 151', '', 'Example row — edit freely'],
-    ['Prismatic Evolutions Booster Bundle', 'Booster Bundle', 'Prismatic Evolutions', '', 'Example row — edit freely'],
-    ['Base Set Booster Box (Unlimited)', 'Booster Box', 'Base Set', '', 'Example row — edit freely']
+    ['Scarlet & Violet: 151 Booster Box', 'Booster Box', 'Scarlet & Violet: 151', '', 'Example row — edit freely', ERA_LABELS.ultra],
+    ['Scarlet & Violet: 151 Elite Trainer Box', 'Elite Trainer Box', 'Scarlet & Violet: 151', '', 'Example row — edit freely', ERA_LABELS.ultra],
+    ['Prismatic Evolutions Booster Bundle', 'Booster Bundle', 'Prismatic Evolutions', '', 'Example row — edit freely', ERA_LABELS.ultra],
+    ['Base Set Booster Box (Unlimited)', 'Booster Box', 'Base Set', '', 'Example row — edit freely', ERA_LABELS.vintage]
   ];
   sheet.getRange(2, 1, starter.length, starter[0].length).setValues(starter);
 }
@@ -147,6 +211,7 @@ function extractPriceInfo_(card) {
     }
   });
   if (!best) return null;
+  var releaseYear = parseYear_(card.set && card.set.releaseDate);
   return {
     id: card.id,
     name: card.name,
@@ -154,7 +219,8 @@ function extractPriceInfo_(card) {
     rarity: card.rarity || 'Unknown',
     finish: best.finish,
     market: best.market,
-    low: best.low
+    low: best.low,
+    era: getEraForYear_(releaseYear)
   };
 }
 
@@ -170,7 +236,7 @@ function refreshSingles_() {
   var timestamp = Date.now(); // numeric epoch ms — sorts correctly, unlike Sheets' auto date-parsing of ISO strings
   if (parsed.length) {
     var rows = parsed.map(function (c) {
-      return [timestamp, c.id, c.name, c.set, c.rarity, c.finish, c.market, c.low || ''];
+      return [timestamp, c.id, c.name, c.set, c.rarity, c.finish, c.market, c.low || '', c.era];
     });
     sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
   }
@@ -189,13 +255,13 @@ function snapshotSealed_() {
   var timestamp = Date.now(); // numeric epoch ms — see refreshSingles_
 
   if (lastRow >= 2) {
-    var data = cfgSheet.getRange(2, 1, lastRow - 1, 4).getValues();
+    var data = cfgSheet.getRange(2, 1, lastRow - 1, 6).getValues();
     data.forEach(function (r) {
-      var name = r[0], category = r[1], set = r[2], price = r[3];
+      var name = r[0], category = r[1], set = r[2], price = r[3], eraLabel = r[5];
       if (!name) return;
       configuredCount++;
       if (price === '' || price === null || isNaN(price)) return;
-      histRows.push([timestamp, name, category, set, Number(price)]);
+      histRows.push([timestamp, name, category, set, Number(price), normalizeEraLabel_(eraLabel)]);
     });
   }
 
@@ -234,6 +300,10 @@ function refreshAll() {
 }
 
 // ---------------- Dashboard read models ----------------
+// Both dashboards return the *full* latest-snapshot list (era + day-over-day
+// change already merged in) rather than a pre-sliced Top N. The client
+// filters by era and slices Top 10/25/50 itself, so switching either control
+// is instant and doesn't need another server round trip.
 
 function readLatestTwoSnapshots_(sheet) {
   var lastRow = sheet.getLastRow();
@@ -264,28 +334,32 @@ function getSinglesDashboard_() {
   if (!snap) return { hasData: false };
 
   var cards = snap.latestRows.map(function (r) {
-    return { id: r[1], name: r[2], set: r[3], rarity: r[4], finish: r[5], market: r[6], low: r[7] };
+    return {
+      id: r[1], name: r[2], set: r[3], rarity: r[4], finish: r[5],
+      market: r[6], low: r[7] || null, era: r[8] || 'unknown'
+    };
   });
-  cards.sort(function (a, b) { return b.market - a.market; });
 
   var prevById = {};
   snap.previousRows.forEach(function (r) { prevById[r[1]] = { market: r[6] }; });
-
-  var movers = [];
-  if (snap.previousTimestamp) {
-    cards.forEach(function (c) {
-      var prev = prevById[c.id];
-      if (prev && prev.market > 0) {
-        var pct = (c.market - prev.market) / prev.market * 100;
-        movers.push(Object.assign({}, c, { pctChange: pct, prevMarket: prev.market }));
-      }
-    });
-    movers.sort(function (a, b) { return b.pctChange - a.pctChange; });
-  }
+  cards.forEach(function (c) {
+    var prev = prevById[c.id];
+    if (prev && prev.market > 0) {
+      c.pctChange = (c.market - prev.market) / prev.market * 100;
+      c.prevMarket = prev.market;
+    } else {
+      c.pctChange = null;
+      c.prevMarket = null;
+    }
+  });
+  cards.sort(function (a, b) { return b.market - a.market; });
 
   var undervalued = cards
     .filter(function (c) { return CONFIG.HIGH_VALUE_RARITIES.indexOf(c.rarity) !== -1 && c.low && c.low > 0; })
-    .map(function (c) { return Object.assign({}, c, { spreadPct: (c.market - c.low) / c.low * 100 }); })
+    .map(function (c) {
+      var spreadPct = (c.market - c.low) / c.low * 100;
+      return Object.assign({}, c, { spreadPct: spreadPct });
+    })
     .filter(function (c) { return c.spreadPct <= CONFIG.UNDERVALUED_THRESHOLD * 100 && c.market >= CONFIG.MIN_MARKET_PRICE; })
     .sort(function (a, b) { return a.spreadPct - b.spreadPct; });
 
@@ -293,10 +367,8 @@ function getSinglesDashboard_() {
     hasData: true,
     timestamp: snap.latestTimestamp,
     hasPrevious: !!snap.previousTimestamp,
-    top: cards.slice(0, 50),
-    gainers: movers.slice(0, 15),
-    decliners: movers.slice(-15).reverse(),
-    undervalued: undervalued.slice(0, 15)
+    cards: cards,
+    undervalued: undervalued
   };
 }
 
@@ -308,33 +380,29 @@ function getSealedDashboard_() {
   if (!snap) return { hasData: false, configuredCount: configuredCount };
 
   var products = snap.latestRows.map(function (r) {
-    return { name: r[1], category: r[2], set: r[3], market: r[4] };
+    return { name: r[1], category: r[2], set: r[3], market: r[4], era: r[5] || 'unknown' };
   });
-  products.sort(function (a, b) { return b.market - a.market; });
 
   var prevByName = {};
   snap.previousRows.forEach(function (r) { prevByName[r[1]] = { market: r[4] }; });
-
-  var movers = [];
-  if (snap.previousTimestamp) {
-    products.forEach(function (p) {
-      var prev = prevByName[p.name];
-      if (prev && prev.market > 0) {
-        var pct = (p.market - prev.market) / prev.market * 100;
-        movers.push(Object.assign({}, p, { pctChange: pct, prevMarket: prev.market }));
-      }
-    });
-    movers.sort(function (a, b) { return b.pctChange - a.pctChange; });
-  }
+  products.forEach(function (p) {
+    var prev = prevByName[p.name];
+    if (prev && prev.market > 0) {
+      p.pctChange = (p.market - prev.market) / prev.market * 100;
+      p.prevMarket = prev.market;
+    } else {
+      p.pctChange = null;
+      p.prevMarket = null;
+    }
+  });
+  products.sort(function (a, b) { return b.market - a.market; });
 
   return {
     hasData: true,
     timestamp: snap.latestTimestamp,
     hasPrevious: !!snap.previousTimestamp,
     configuredCount: configuredCount,
-    top: products.slice(0, 50),
-    gainers: movers.slice(0, 15),
-    decliners: movers.slice(-15).reverse()
+    products: products
   };
 }
 
