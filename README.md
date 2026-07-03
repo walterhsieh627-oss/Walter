@@ -1,6 +1,35 @@
-# Cure Chart Viewer — Google Apps Script Web App
+# Pokémon TCG Market Tracker — Google Apps Script Web App
 
-A browser-based tool for visualizing oven thermocouple cure chart CSVs, with dwell tolerance checking, ramp rate analysis, and print/export support.
+A browser-based dashboard for tracking Pokémon TCG market trends:
+
+- **Singles** — automatically pulled from [pokemontcg.io](https://pokemontcg.io) (a free public API that mirrors
+  TCGplayer market price data), ranked into Top 10/25/50, with day-over-day gainers/decliners and a simple
+  "potentially undervalued" heuristic.
+- **Sealed products** (booster boxes, ETBs, etc.) — entered by hand into a Google Sheet, then tracked the same way
+  (rankings + movers) once you've logged a couple of price snapshots.
+
+## Why sealed products are manual
+
+TCGplayer doesn't offer a public API for product pricing (their real API requires a seller/partner account), and
+their site actively blocks automated/bot requests — a plain fetch to a TCGplayer product page returns
+`403 Forbidden`. There's no way to pull sealed pricing automatically without deliberately evading that bot
+protection, which this project doesn't do. Instead, you type the current TCGplayer market price into a sheet
+yourself (a 30-second copy-paste), and the app takes care of ranking, history, and trend tracking from there.
+
+## What gets created
+
+On first load, the script creates a Google Sheet named **"Pokemon TCG Market Tracker Data"** in your Drive, with
+three tabs:
+
+| Tab | Purpose |
+|---|---|
+| `SinglesHistory` | Timestamped snapshots of top-priced singles, appended on every refresh |
+| `SealedHistory` | Timestamped snapshots of sealed product prices, appended on every refresh |
+| `SealedProducts` | **Edit this one.** List the sealed products you want to track and fill in their current TCGplayer market price |
+
+The `SealedProducts` tab comes pre-seeded with a few example rows — add, remove, or rename rows freely; there's no
+fixed catalog, since it can't be auto-discovered (see above). Leave "Market Price" blank for a product you haven't
+priced yet — it's simply skipped until you fill it in.
 
 ## First-time setup
 
@@ -18,10 +47,11 @@ clasp login
 
 ### 3. Create the Apps Script project
 
-Run this once from the repo root. It creates the project in your Google Drive and writes the `scriptId` into `.clasp.json`.
+Run this once from the repo root. It creates the project in your Google Drive and writes the `scriptId` into
+`.clasp.json`.
 
 ```bash
-clasp create --title "Cure Chart Viewer" --type webapp
+clasp create --title "Pokemon TCG Market Tracker" --type webapp
 ```
 
 ### 4. Push the files
@@ -44,7 +74,13 @@ clasp open
 
 Go to **Deploy → Manage deployments** and copy the web app URL.
 
----
+### 7. First run
+
+Open the web app URL and click **Refresh Now**. This fetches singles from pokemontcg.io and creates your data
+Google Sheet (linked from the "Open Data Sheet" button in the header). Add sealed products and their prices in the
+`SealedProducts` tab, then click **Refresh Now** again to capture a sealed snapshot.
+
+Market movers need at least two refreshes to show anything — the first run is just a baseline.
 
 ## Updating after code changes
 
@@ -61,24 +97,46 @@ clasp deploy --deploymentId <id> --description "v2"
 
 The deployment ID is printed by `clasp deploy` and also visible in **Manage deployments**.
 
----
+## Optional: pokemontcg.io API key
+
+Without a key you get 1,000 requests/day; with a free key from [pokemontcg.io](https://pokemontcg.io), 20,000/day.
+Paste it into the **Settings** tab of the app (saved to Script Properties, not committed to this repo).
+
+## Optional: daily auto-refresh
+
+The **Settings** tab (or the header toggle) lets you enable a daily time-based trigger that runs `refreshAll()`
+automatically — singles are fetched fresh from the API, and sealed products are snapshotted from whatever's
+currently in the `SealedProducts` sheet. Update sheet prices whenever you check TCGplayer; the next trigger picks
+up the new values.
 
 ## Project structure
 
 | File | Role |
 |---|---|
-| `Code.gs` | Server entry point — `doGet()` serves the HTML page |
-| `index.html` | Full client-side app (CSV parsing, Chart.js, tolerance checks) |
+| `Code.gs` | Server logic — fetches singles from pokemontcg.io, manages the data Sheet, computes rankings/movers/undervalued, handles triggers |
+| `index.html` | Client-side dashboard (tabs, tables, refresh controls, settings) |
 | `appsscript.json` | Apps Script manifest (runtime, web app access settings) |
 | `.clasp.json` | Links this directory to the Apps Script project |
 
 ## Access settings
 
-Set in `appsscript.json` → `webapp.access`:
+Set in `appsscript.json` → `webapp`:
 
-| Value | Who can open the URL |
+| `access` | Who can open the URL |
 |---|---|
-| `ANYONE_ANONYMOUS` | Anyone on the internet (no sign-in) |
-| `ANYONE` | Anyone with a Google account |
+| `MYSELF` (default here) | Only you |
 | `DOMAIN` | Anyone in your Google Workspace org |
-| `MYSELF` | Only you |
+| `ANYONE` | Anyone with a Google account |
+| `ANYONE_ANONYMOUS` | Anyone on the internet (no sign-in) |
+
+This project defaults to `executeAs: USER_DEPLOYING` + `access: MYSELF`, so the app always runs with your
+authorization (your Sheet, your API key) regardless of who opens it — useful if you widen `access` later to share
+a read-only view without sharing edit access to the underlying Sheet.
+
+## Data source caveats
+
+- pokemontcg.io prices are daily snapshots from TCGplayer, not live/real-time transactions.
+- There's no public transaction-volume data available anywhere for Pokémon singles or sealed product — price
+  movement (via repeated refreshes) is the closest available proxy for "market activity."
+- The "undervalued" heuristic (market price close to the "low" price on high-rarity cards) is a rough signal to
+  investigate further, not a buy recommendation.
