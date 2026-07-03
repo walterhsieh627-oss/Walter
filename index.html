@@ -171,7 +171,9 @@
     min-width: 240px;
   }
 
-  .card-name[data-img] { cursor: help; border-bottom: 1px dotted var(--text-dim); }
+  /* [data-img] alone matches even an empty attribute, so exclude "" explicitly
+     — otherwise every card name gets the hover cursor even with no image. */
+  .card-name[data-img]:not([data-img=""]) { cursor: help; border-bottom: 1px dotted var(--text-dim); }
   #cardPreview {
     position: fixed;
     z-index: 999;
