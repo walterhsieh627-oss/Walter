@@ -194,8 +194,14 @@ function fetchSingleCards_() {
 
   var all = [];
   for (var page = 1; page <= CONFIG.MAX_PAGES; page++) {
+    // orderBy=-set.releaseDate: without an explicit sort, the API's default
+    // order isn't guaranteed date-based, and MAX_PAGES caps well under the
+    // full historical card pool — sorting newest-first ensures this year's
+    // sets always land inside that budget instead of being crowded out by
+    // 25+ years of older high-rarity cards.
     var url = CONFIG.POKEMONTCG_BASE_URL + '?page=' + page +
-      '&pageSize=' + CONFIG.PAGE_SIZE + '&q=' + encodeURIComponent(query);
+      '&pageSize=' + CONFIG.PAGE_SIZE + '&orderBy=-set.releaseDate' +
+      '&q=' + encodeURIComponent(query);
     var resp = UrlFetchApp.fetch(url, { headers: headers, muteHttpExceptions: true });
     if (resp.getResponseCode() !== 200) break;
     var data = JSON.parse(resp.getContentText()).data || [];

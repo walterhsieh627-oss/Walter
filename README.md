@@ -186,3 +186,8 @@ a read-only view without sharing edit access to the underlying Sheet.
   movement (via repeated refreshes) is the closest available proxy for "market activity."
 - The "undervalued" heuristic (market price close to the "low" price on high-rarity cards) is a rough signal to
   investigate further, not a buy recommendation.
+- pokemontcg.io is a community-maintained project, not an official Pokémon/TCGplayer API — it can lag by days to
+  weeks in adding brand-new sets after real-world release. The singles fetch explicitly sorts newest-first
+  (`orderBy=-set.releaseDate`) so a just-released set always lands inside the `MAX_PAGES` budget instead of being
+  crowded out by older cards, but if pokemontcg.io itself hasn't indexed a set yet, no amount of sorting will surface
+  it — check [their site](https://pokemontcg.io) directly if a brand-new set seems to be missing.
