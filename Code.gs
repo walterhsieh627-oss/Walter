@@ -246,6 +246,54 @@ function refreshSingles_() {
   return { count: parsed.length, timestamp: timestamp };
 }
 
+// One-time (or occasional) repair for rows written before the Image column
+// existed, or where it's blank for any other reason. Only targets the latest
+// snapshot, since that's the only one the dashboard actually reads images
+// from — no need to backfill older history rows nobody displays.
+function backfillImages() {
+  var ss = getSpreadsheet_();
+  var sheet = ss.getSheetByName('SinglesHistory');
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return { updated: 0, checked: 0 };
+
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var imageColIdx = headers.indexOf('Image'); // 0-based
+  if (imageColIdx === -1) return { updated: 0, checked: 0, error: 'No Image column found — redeploy the latest Code.gs first.' };
+
+  var values = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
+  var latestTs = null;
+  values.forEach(function (r) {
+    var ts = Number(r[0]);
+    if (latestTs === null || ts > latestTs) latestTs = ts;
+  });
+  if (latestTs === null) return { updated: 0, checked: 0 };
+
+  var targets = [];
+  values.forEach(function (r, i) {
+    if (Number(r[0]) === latestTs && !r[imageColIdx]) targets.push(i);
+  });
+  if (!targets.length) return { updated: 0, checked: 0 };
+
+  var raw = fetchSingleCards_();
+  var imageById = {};
+  raw.forEach(function (card) {
+    var images = card.images || {};
+    var img = images.large || images.small || '';
+    if (img) imageById[card.id] = img;
+  });
+
+  var updated = 0;
+  targets.forEach(function (i) {
+    var cardId = values[i][1]; // CardID is always column B
+    var img = imageById[cardId];
+    if (img) {
+      sheet.getRange(i + 2, imageColIdx + 1).setValue(img);
+      updated++;
+    }
+  });
+  return { updated: updated, checked: targets.length };
+}
+
 // ---------------- Sealed: snapshot from manual entry sheet ----------------
 
 function snapshotSealed_() {

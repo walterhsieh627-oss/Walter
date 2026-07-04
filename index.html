@@ -314,6 +314,16 @@
         <span id="apiKeyStatus" class="sub"></span>
       </div>
     </div>
+    <div class="card">
+      <h2>Card Images</h2>
+      <p class="sub" style="margin-top:0">Every refresh captures each card's image automatically going forward. If
+        rows from before this feature existed are missing a hover preview, run this once to fill in images for the
+        current snapshot without doing a full price refresh.</p>
+      <div class="settings-row">
+        <button id="backfillImagesBtn">Backfill Missing Images</button>
+        <span id="backfillStatus" class="sub"></span>
+      </div>
+    </div>
   </section>
 </main>
 
@@ -498,6 +508,27 @@
       document.getElementById('apiKeyInput').value = '';
       loadStatus();
     }).saveApiKey(key);
+  });
+
+  document.getElementById('backfillImagesBtn').addEventListener('click', function () {
+    var btn = this;
+    var status = document.getElementById('backfillStatus');
+    btn.disabled = true;
+    status.textContent = 'Working…';
+    google.script.run.withSuccessHandler(function (result) {
+      btn.disabled = false;
+      if (result.error) {
+        status.textContent = result.error;
+      } else if (!result.checked) {
+        status.textContent = 'Nothing to backfill — every card in the current snapshot already has an image.';
+      } else {
+        status.textContent = 'Updated ' + result.updated + ' of ' + result.checked + ' card(s). Refreshing view…';
+        loadDashboard();
+      }
+    }).withFailureHandler(function (err) {
+      btn.disabled = false;
+      status.textContent = 'Failed: ' + err.message;
+    }).backfillImages();
   });
 
   // Tabs
