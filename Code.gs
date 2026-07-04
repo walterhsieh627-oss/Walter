@@ -25,6 +25,9 @@ var CONFIG = {
   UNDERVALUED_THRESHOLD: 0.15, // market within 15% of "low" = flagged
   MIN_MARKET_PRICE: 5.0, // ignore bulk cards below this
   MAX_SNAPSHOTS_KEPT: 30, // rolling history depth, per data set
+  PROFIT_REALIZATION_THRESHOLD_PCT: 50, // cost-basis gain to flag as "consider selling"
+  MOMENTUM_THRESHOLD_PCT: 10, // day-over-day move to flag as momentum sell / decline watch
+  DUPLICATE_MIN_MARKET: 10, // ignore low-value duplicates when flagging extras to sell
   HIGH_VALUE_RARITIES: [
     'Rare Secret', 'Rare Rainbow Rare', 'Special Illustration Rare',
     'Illustration Rare', 'Hyper Rare', 'Rare Holo VMAX', 'Rare Holo VSTAR',
@@ -117,6 +120,9 @@ function ensureSheets_(ss) {
     seedSealedProducts_(sealedCfg);
   }
   applyEraDropdown_(sealedCfg, 6); // Era is column F
+
+  ensureSheetWithHeaders_(ss, 'MyCollection',
+    ['Name', 'Set', 'Quantity', 'Cost Basis', 'Category', 'Notes']);
 
   var def = ss.getSheetByName('Sheet1');
   if (def && ss.getSheets().length > 1) {
@@ -460,6 +466,163 @@ function getDashboardData() {
   return {
     singles: getSinglesDashboard_(),
     sealed: getSealedDashboard_()
+  };
+}
+
+// ---------------- My Collection: CSV import + sell analysis ----------------
+// Collectr (getcollectr.com) has no API for reading a personal collection —
+// their public API only covers product/catalog lookups. The only way to get
+// a collection out is Collectr's in-app export (PRO membership, mobile only,
+// CSV/Excel). So import here is file-based: the client reads the exported
+// file and sends its raw text over, the user maps its columns once (export
+// formats aren't guaranteed stable), and we store the mapped result.
+
+function normalizeKey_(s) {
+  return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+// Returns detected headers + a few sample rows so the client can build a
+// column-mapping UI without guessing at Collectr's export format.
+function getCsvPreview(csvText) {
+  var rows = Utilities.parseCsv(csvText);
+  if (!rows.length) return { headers: [], sampleRows: [], rowCount: 0 };
+  return {
+    headers: rows[0],
+    sampleRows: rows.slice(1, 4),
+    rowCount: Math.max(0, rows.length - 1)
+  };
+}
+
+// mapping: { name, set, quantity, cost, category } — each either a header
+// string from the uploaded CSV, or falsy if that field wasn't mapped.
+function importCollection(csvText, mapping) {
+  var rows = Utilities.parseCsv(csvText);
+  if (!rows.length) return { imported: 0 };
+  var headers = rows[0];
+  var idx = {};
+  Object.keys(mapping).forEach(function (field) {
+    idx[field] = mapping[field] ? headers.indexOf(mapping[field]) : -1;
+  });
+  if (idx.name === undefined || idx.name < 0) {
+    return { imported: 0, error: 'Name column is required.' };
+  }
+
+  var out = [];
+  rows.slice(1).forEach(function (r) {
+    var name = (r[idx.name] || '').trim();
+    if (!name) return;
+    var set = idx.set >= 0 ? (r[idx.set] || '').trim() : '';
+    var quantity = idx.quantity >= 0 ? Number(r[idx.quantity]) || 1 : 1;
+    var cost = idx.cost >= 0 && r[idx.cost] !== '' ? Number(String(r[idx.cost]).replace(/[^0-9.-]/g, '')) : '';
+    var category = idx.category >= 0 ? (r[idx.category] || '').trim() : '';
+    out.push([name, set, quantity, cost === '' || isNaN(cost) ? '' : cost, category, '']);
+  });
+
+  var ss = getSpreadsheet_();
+  var sheet = ss.getSheetByName('MyCollection');
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).clearContent();
+  }
+  if (out.length) {
+    sheet.getRange(2, 1, out.length, out[0].length).setValues(out);
+  }
+  return { imported: out.length };
+}
+
+// Cross-references MyCollection against the latest singles snapshot to
+// attach live pricing, then buckets matched items into simple sell signals.
+// These are heuristic prompts to look closer, not financial advice.
+function getCollectionAnalysis() {
+  var ss = getSpreadsheet_();
+  var collSheet = ss.getSheetByName('MyCollection');
+  var lastRow = collSheet.getLastRow();
+  if (lastRow < 2) return { hasData: false };
+
+  var collRows = collSheet.getRange(2, 1, lastRow - 1, 6).getValues()
+    .filter(function (r) { return r[0]; });
+  if (!collRows.length) return { hasData: false };
+
+  var singlesSheet = ss.getSheetByName('SinglesHistory');
+  var snap = readLatestTwoSnapshots_(singlesSheet);
+  var byNameAndSet = {};
+  var byNameOnly = {}; // name -> highest-market card sharing that name, for approximate fallback matches
+  if (snap) {
+    var prevByKey = {};
+    snap.previousRows.forEach(function (r) {
+      prevByKey[normalizeKey_(r[2]) + '|' + normalizeKey_(r[3])] = r[6];
+    });
+    snap.latestRows.forEach(function (r) {
+      var key = normalizeKey_(r[2]) + '|' + normalizeKey_(r[3]);
+      var prevMarket = prevByKey[key];
+      var card = {
+        name: r[2], set: r[3], rarity: r[4], market: r[6], era: r[8] || 'unknown',
+        pctChange: (prevMarket && prevMarket > 0) ? (r[6] - prevMarket) / prevMarket * 100 : null
+      };
+      byNameAndSet[key] = card;
+      var nameKey = normalizeKey_(card.name);
+      if (!byNameOnly[nameKey] || card.market > byNameOnly[nameKey].market) {
+        byNameOnly[nameKey] = card;
+      }
+    });
+  }
+
+  var items = collRows.map(function (r) {
+    var name = r[0], set = r[1], quantity = Number(r[2]) || 1, cost = r[3], category = r[4];
+    var exact = byNameAndSet[normalizeKey_(name) + '|' + normalizeKey_(set)];
+    var approx = !exact ? byNameOnly[normalizeKey_(name)] : null;
+    var match = exact || approx || null;
+
+    var item = {
+      name: name, set: set, quantity: quantity,
+      costBasis: cost === '' ? null : Number(cost),
+      category: category,
+      matchConfidence: exact ? 'exact' : (approx ? 'approximate' : 'none'),
+      market: match ? match.market : null,
+      era: match ? match.era : 'unknown',
+      rarity: match ? match.rarity : '',
+      pctChange: match ? match.pctChange : null
+    };
+    item.currentValue = item.market !== null ? item.market * quantity : null;
+    item.gainAmount = (item.market !== null && item.costBasis !== null)
+      ? (item.market - item.costBasis) * quantity : null;
+    item.gainPct = (item.market !== null && item.costBasis)
+      ? (item.market - item.costBasis) / item.costBasis * 100 : null;
+    return item;
+  });
+
+  var matched = items.filter(function (i) { return i.market !== null; });
+
+  var profitRealization = matched
+    .filter(function (i) { return i.gainPct !== null && i.gainPct >= CONFIG.PROFIT_REALIZATION_THRESHOLD_PCT; })
+    .sort(function (a, b) { return b.gainAmount - a.gainAmount; });
+
+  var duplicates = matched
+    .filter(function (i) { return i.quantity > 1 && i.market >= CONFIG.DUPLICATE_MIN_MARKET; })
+    .map(function (i) { return Object.assign({}, i, { extraValue: (i.quantity - 1) * i.market }); })
+    .sort(function (a, b) { return b.extraValue - a.extraValue; });
+
+  var momentumSells = matched
+    .filter(function (i) { return i.pctChange !== null && i.pctChange >= CONFIG.MOMENTUM_THRESHOLD_PCT; })
+    .sort(function (a, b) { return b.pctChange - a.pctChange; });
+
+  var declineWatch = matched
+    .filter(function (i) { return i.pctChange !== null && i.pctChange <= -CONFIG.MOMENTUM_THRESHOLD_PCT; })
+    .sort(function (a, b) { return a.pctChange - b.pctChange; });
+
+  return {
+    hasData: true,
+    itemCount: items.length,
+    matchedCount: matched.length,
+    unmatchedCount: items.length - matched.length,
+    hasPriceHistory: !!(snap && snap.previousTimestamp),
+    items: items,
+    recommendations: {
+      profitRealization: profitRealization.slice(0, 15),
+      duplicates: duplicates.slice(0, 15),
+      momentumSells: momentumSells.slice(0, 15),
+      declineWatch: declineWatch.slice(0, 15)
+    }
   };
 }
 

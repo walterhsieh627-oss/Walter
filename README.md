@@ -10,6 +10,30 @@ A browser-based dashboard for tracking Pokémon TCG market trends:
 - Both are filterable by **era** — Vintage, Mid-Era, Modern, or Ultra-Modern (see below).
 - Hover over any single card's name to see its card image (pulled from pokemontcg.io, which hosts images for this
   purpose). Sealed products don't have card images, so there's no hover preview for those.
+- **My Collection** — import your own collection (e.g. exported from Collectr) and get simple sell-signal
+  recommendations based on live pricing (see below).
+
+## My Collection
+
+Import your collection to see it cross-referenced against live singles pricing, with a few heuristic "worth a
+second look" recommendation buckets: cards up 50%+ over your recorded cost basis, cards up or down 10%+ since your
+last refresh, and duplicates of valuable cards you're probably only keeping one of. **These are prompts to look
+closer, not financial advice** — the same spirit as the "undervalued" heuristic for Top singles.
+
+**Why this is a file import, not a "connect your account" integration**: Collectr (getcollectr.com) has no API for
+reading a personal collection — their public API only covers product/catalog lookups across their database, not
+individual user accounts. The only way to get a collection out of Collectr at all is its in-app export (PRO
+membership required, mobile app only, Excel/CSV). So the flow here is: export from Collectr → upload the CSV in
+the **My Collection** tab → map its columns (Name is required; Set, Quantity, Cost Basis, and Category are
+optional) → Import. If your export is `.xlsx`, open it and re-save/export as CSV first. This same import also
+works with any other CSV that has a card-name column, not just Collectr's.
+
+Matching your import to live prices is best-effort: it tries an exact match on name + set first, then falls back
+to matching by name alone (picking the highest-market printing) if no set match is found — shown as "Matched" vs.
+"Approx." in the collection table. Cards with no price data at all in the tracker (e.g. low-value commons, since
+only high-value rarities are tracked) show as "No match" with no live price.
+
+Re-uploading replaces the whole collection with the new file — it isn't additive.
 
 ## Eras
 
@@ -46,6 +70,7 @@ three tabs:
 | `SinglesHistory` | Timestamped snapshots of top-priced singles, appended on every refresh |
 | `SealedHistory` | Timestamped snapshots of sealed product prices, appended on every refresh |
 | `SealedProducts` | **Edit this one.** List the sealed products you want to track, pick an Era, and fill in their current TCGplayer market price |
+| `MyCollection` | Populated by the CSV import in the **My Collection** tab — not meant to be hand-edited |
 
 The `SealedProducts` tab comes pre-seeded with a few example rows — add, remove, or rename rows freely; there's no
 fixed catalog, since it can't be auto-discovered (see above). Leave "Market Price" blank for a product you haven't
